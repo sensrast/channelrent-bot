@@ -1,1 +1,149 @@
-aW1wb3J0IGFzeW5jaW8KaW1wb3J0IGxvZ2dpbmcKaW1wb3J0IHN5cwpmcm9tIHRlbGVncmFtIGltcG9ydCBVcGRhdGUKZnJvbSB0ZWxlZ3JhbS5leHQgaW1wb3J0IEFwcGxpY2F0aW9uLCBDb21tYW5kSGFuZGxlciwgQ2FsbGJhY2tRdWVyeUhhbmRsZXIKZnJvbSBhaW9odHRwIGltcG9ydCB3ZWIKCmltcG9ydCBjb25maWcKZnJvbSBkYXRhYmFzZS5wb29sIGltcG9ydCBpbml0X3Bvb2wsIGNsb3NlX3Bvb2wsIGRiCmZyb20gc2VydmljZXMuc2NoZWR1bGVyX3NlcnZpY2UgaW1wb3J0IHN0YXJ0IGFzIHN0YXJ0X3NjaGVkLCBzdG9wIGFzIHN0b3Bfc2NoZWQKZnJvbSBzZXJ2aWNlcy5oZWFsdGhfc2VydmVyIGltcG9ydCBidWlsZF9hcHAKZnJvbSBzZXJ2aWNlcy5ub3RpZmljYXRpb25fc2VydmljZSBpbXBvcnQgbm90aWZ5X3N1cGVyYWRtaW4KCmZyb20gaGFuZGxlcnMuc3RhcnQgaW1wb3J0IHN0YXJ0X2hhbmRsZXIsIHVuaXZlcnNhbF9jYW5jZWwKZnJvbSBoYW5kbGVycy5jb21tb24uaGVscCBpbXBvcnQgaGVscF9jbWQKZnJvbSBoYW5kbGVycy5jYWxsYmFja3MgaW1wb3J0IGNhbGxiYWNrX3JvdXRlcgpmcm9tIGhhbmRsZXJzLmFkdmVydGlzZXIud2FsbGV0IGltcG9ydCBidWlsZF90b3B1cF9jb252CmZyb20gaGFuZGxlcnMuYWR2ZXJ0aXNlci5ib29raW5nX2Zsb3cgaW1wb3J0IGJ1aWxkX2Jvb2tpbmdfY29udgpmcm9tIGhhbmRsZXJzLm93bmVyLmNoYW5uZWxfc2V0dXAgaW1wb3J0IGJ1aWxkX3NldHVwX2NvbnYKZnJvbSBoYW5kbGVycy5vd25lci5ib29raW5nX21nbXQgaW1wb3J0IGJ1aWxkX3JlamVjdF9jb252LCBhcHByb3ZlX2Jvb2tpbmcKZnJvbSBoYW5kbGVycy5vd25lci5lYXJuaW5ncyBpbXBvcnQgYnVpbGRfcGF5b3V0X2NvbnYKZnJvbSBoYW5kbGVycy5hZG1pbi5maW5hbmNpYWwgaW1wb3J0IGJ1aWxkX3BheW91dF9hZG1pbl9jb252CmZyb20gaGFuZGxlcnMuYWRtaW4udXNlcl9tZ210IGltcG9ydCBidWlsZF91c2VyX2FkbWluX2NvbnYKZnJvbSBoYW5kbGVycy5hZG1pbi5wbGF0Zm9ybV9zZXR0aW5ncyBpbXBvcnQgYnVpbGRfc2V0dGluZ3NfY29udgpmcm9tIGhhbmRsZXJzLmFkbWluLmJyb2FkY2FzdCBpbXBvcnQgYnVpbGRfYmNhc3RfY29udgpmcm9tIGhhbmRsZXJzLmFkbWluLnBsYXRmb3JtX3NldHRpbmdzIGltcG9ydCB0b2dnbGVfc2V0dGluZwpmcm9tIGhhbmRsZXJzLmFkbWluLnByaWNpbmdfZW5naW5lIGltcG9ydCBidWlsZF9wcmljaW5nX2NvbnYKZnJvbSBoYW5kbGVycy5hZG1pbi5kYXNoYm9hcmQgaW1wb3J0IGFkbWluX3BhbmVsCmZyb20gaGFuZGxlcnMuYWR2ZXJ0aXNlci5teV9ib29raW5ncyBpbXBvcnQgbXlfYm9va2luZ3MKZnJvbSBoYW5kbGVycy5hZHZlcnRpc2VyLmJyb3dzZSBpbXBvcnQgYnJvd3NlX3BhbmVsCmZyb20gaGFuZGxlcnMub3duZXIuZGFzaGJvYXJkIGltcG9ydCBteV9jaGFubmVscwoKbG9nZ2luZy5iYXNpY0NvbmZpZyhsZXZlbD1sb2dnaW5nLklORk8sIGZvcm1hdD0iJShhc2N0aW1lKXMgJShsZXZlbG5hbWUpcyAlKG5hbWUpcyAlKG1lc3NhZ2UpcyIsIHN0cmVhbT1zeXMuc3Rkb3V0KQpsb2cgPSBsb2dnaW5nLmdldExvZ2dlcigibWFpbiIpCgphc3luYyBkZWYgX3Bvc3RfaW5pdChhcHA6IEFwcGxpY2F0aW9uKToKICAgIGF3YWl0IGluaXRfcG9vbCgpCiAgICBzdGFydF9zY2hlZChhcHAuYm90KQogICAgbG9nLmluZm8oIkRCICsgc2NoZWR1bGVyIHJlYWR5IikKICAgIHRyeToKICAgICAgICBmcm9tIHRlbGVncmFtIGltcG9ydCBCb3RDb21tYW5kLCBCb3RDb21tYW5kU2NvcGVEZWZhdWx0LCBCb3RDb21tYW5kU2NvcGVDaGF0CiAgICAgICAgcHVibGljX2NtZHMgPSBbCiAgICAgICAgICAgIEJvdENvbW1hbmQoInN0YXJ0IiwiT3BlbiB0aGUgbWFpbiBtZW51IiksCiAgICAgICAgICAgIEJvdENvbW1hbmQoImhlbHAiLCJIb3cgaXQgd29ya3MiKSwKICAgICAgICAgICAgQm90Q29tbWFuZCgid2FsbGV0IiwiT3BlbiB5b3VyIHdhbGxldCIpLAogICAgICAgICAgICBCb3RDb21tYW5kKCJib29raW5ncyIsIlZpZXcgeW91ciBib29raW5ncyIpLAogICAgICAgICAgICBCb3RDb21tYW5kKCJjaGFubmVscyIsIk1hbmFnZSB5b3VyIGNoYW5uZWxzIiksCiAgICAgICAgICAgIEJvdENvbW1hbmQoImJyb3dzZSIsIkJyb3dzZSBjaGFubmVscyIpLAogICAgICAgICAgICBCb3RDb21tYW5kKCJjYW5jZWwiLCJDYW5jZWwgY3VycmVudCBhY3Rpb24iKSwKICAgICAgICBdCiAgICAgICAgYXdhaXQgYXBwLmJvdC5zZXRfbXlfY29tbWFuZHMocHVibGljX2NtZHMsIHNjb3BlPUJvdENvbW1hbmRTY29wZURlZmF1bHQoKSkKICAgICAgICBmb3Igc2lkIGluIGNvbmZpZy5TVVBFUkFETUlOX0lEUzoKICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgYXdhaXQgYXBwLmJvdC5zZXRfbXlfY29tbWFuZHMocHVibGljX2NtZHMgKyBbQm90Q29tbWFuZCgiYWRtaW4iLCJPcGVuIGFkbWluIHBhbmVsIildLCBzY29wZT1Cb3RDb21tYW5kU2NvcGVDaGF0KGNoYXRfaWQ9c2lkKSkKICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOgogICAgICAgICAgICAgICAgbG9nLndhcm5pbmcoImFkbWluIGNvbW1hbmRzIHNldCBmYWlsZWQgZm9yICVzOiAlcyIsIHNpZCwgZSkKICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICBsb2cud2FybmluZygic2V0X215X2NvbW1hbmRzIGZhaWxlZDogJXMiLCBlKQogICAgdHJ5OgogICAgICAgIGF3YWl0IG5vdGlmeV9zdXBlcmFkbWluKGFwcC5ib3QsIGYi8J+foiB7Y29uZmlnLlBMQVRGT1JNX05BTUV9IHN0YXJ0ZWQuIikKICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICBsb2cud2FybmluZygibm90aWZ5IHN0YXJ0IGZhaWxlZDogJXMiLCBlKQoKYXN5bmMgZGVmIF9wb3N0X3NodXRkb3duKGFwcDogQXBwbGljYXRpb24pOgogICAgc3RvcF9zY2hlZCgpCiAgICBhd2FpdCBjbG9zZV9wb29sKCkKCmRlZiBidWlsZF9hcHBfb2JqKCk6CiAgICBpZiBub3QgY29uZmlnLkJPVF9UT0tFTjoKICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoIkJPVF9UT0tFTiBub3Qgc2V0IikKICAgIGFwcCA9IEFwcGxpY2F0aW9uLmJ1aWxkZXIoKS50b2tlbihjb25maWcuQk9UX1RPS0VOKS5wb3N0X2luaXQoX3Bvc3RfaW5pdCkucG9zdF9zaHV0ZG93bihfcG9zdF9zaHV0ZG93bikuYnVpbGQoKQoKICAgIGFwcC5hZGRfaGFuZGxlcihidWlsZF9zZXR1cF9jb252KCkpCiAgICBhcHAuYWRkX2hhbmRsZXIoYnVpbGRfYm9va2luZ19jb252KCkpCiAgICBhcHAuYWRkX2hhbmRsZXIoYnVpbGRfdG9wdXBfY29udigpKQogICAgYXBwLmFkZF9oYW5kbGVyKGJ1aWxkX3BheW91dF9jb252KCkpCiAgICBhcHAuYWRkX2hhbmRsZXIoYnVpbGRfcmVqZWN0X2NvbnYoKSkKICAgIGFwcC5hZGRfaGFuZGxlcihidWlsZF9wYXlvdXRfYWRtaW5fY29udigpKQogICAgYXBwLmFkZF9oYW5kbGVyKGJ1aWxkX3VzZXJfYWRtaW5fY29udigpKQogICAgYXBwLmFkZF9oYW5kbGVyKGJ1aWxkX3NldHRpbmdzX2NvbnYoKSkKICAgIGFwcC5hZGRfaGFuZGxlcihidWlsZF9iY2FzdF9jb252KCkpCiAgICBhcHAuYWRkX2hhbmRsZXIoYnVpbGRfcHJpY2luZ19jb252KCkpCiAgICBmcm9tIHRlbGVncmFtLmV4dCBpbXBvcnQgQ2FsbGJhY2tRdWVyeUhhbmRsZXIgYXMgX0NRSAogICAgYXBwLmFkZF9oYW5kbGVyKF9DUUgodG9nZ2xlX3NldHRpbmcsIHBhdHRlcm49ciJeYWRtaW46dG9nOlthLXpfXSskIikpCgogICAgYXBwLmFkZF9oYW5kbGVyKENvbW1hbmRIYW5kbGVyKCJzdGFydCIsIHN0YXJ0X2hhbmRsZXIpKQogICAgYXBwLmFkZF9oYW5kbGVyKENvbW1hbmRIYW5kbGVyKCJhZG1pbiIsIGFkbWluX3BhbmVsKSkKICAgIGFwcC5hZGRfaGFuZGxlcihDb21tYW5kSGFuZGxlcigiaGVscCIsIGhlbHBfY21kKSkKICAgIGFwcC5hZGRfaGFuZGxlcihDb21tYW5kSGFuZGxlcigid2FsbGV0IiwgbGFtYmRhIHUsYzogdS5tZXNzYWdlLnJlcGx5X3RleHQoIk9wZW4gL3N0YXJ0IG1lbnUg4oaSIPCfkrAgTXkgV2FsbGV0IikpKQogICAgYXBwLmFkZF9oYW5kbGVyKENvbW1hbmRIYW5kbGVyKCJib29raW5ncyIsIGxhbWJkYSB1LGM6IHUubWVzc2FnZS5yZXBseV90ZXh0KCJPcGVuIC9zdGFydCBtZW51IOKGkiDwn5OLIE15IEJvb2tpbmdzIikpKQogICAgYXBwLmFkZF9oYW5kbGVyKENvbW1hbmRIYW5kbGVyKCJjaGFubmVscyIsIGxhbWJkYSB1LGM6IHUubWVzc2FnZS5yZXBseV90ZXh0KCJPcGVuIC9zdGFydCBtZW51IOKGkiDwn5OiIE15IENoYW5uZWxzIikpKQogICAgYXBwLmFkZF9oYW5kbGVyKENvbW1hbmRIYW5kbGVyKCJicm93c2UiLCBsYW1iZGEgdSxjOiB1Lm1lc3NhZ2UucmVwbHlfdGV4dCgiT3BlbiAvc3RhcnQgbWVudSDihpIg8J+UjSBCcm93c2UgQ2hhbm5lbHMiKSkpCiAgICBhcHAuYWRkX2hhbmRsZXIoQ29tbWFuZEhhbmRsZXIoImNhbmNlbCIsIHVuaXZlcnNhbF9jYW5jZWwpKQoKICAgIGFwcC5hZGRfaGFuZGxlcihDYWxsYmFja1F1ZXJ5SGFuZGxlcihjYWxsYmFja19yb3V0ZXIpKQoKICAgIGFzeW5jIGRlZiBlcnJfaGFuZGxlcih1cGRhdGUsIGNvbnRleHQpOgogICAgICAgIGxvZy5leGNlcHRpb24oIlVuaGFuZGxlZDogJXMiLCBjb250ZXh0LmVycm9yKQogICAgYXBwLmFkZF9lcnJvcl9oYW5kbGVyKGVycl9oYW5kbGVyKQoKICAgIHJldHVybiBhcHAKCmFzeW5jIGRlZiBydW5fd2ViaG9vayhhcHA6IEFwcGxpY2F0aW9uKToKICAgIGF3YWl0IGFwcC5pbml0aWFsaXplKCkKICAgIGF3YWl0IGFwcC5zdGFydCgpCiAgICB1cmwgPSBmIntjb25maWcuV0VCSE9PS19VUkx9L3dlYmhvb2siCiAgICBhd2FpdCBhcHAuYm90LnNldF93ZWJob29rKHVybD11cmwsIHNlY3JldF90b2tlbj1jb25maWcuV0VCSE9PS19TRUNSRVQsIGFsbG93ZWRfdXBkYXRlcz1VcGRhdGUuQUxMX1RZUEVTLCBkcm9wX3BlbmRpbmdfdXBkYXRlcz1UcnVlKQogICAgbG9nLmluZm8oIldlYmhvb2sgc2V0OiAlcyIsIHVybCkKICAgIGFpbyA9IGJ1aWxkX2FwcChhcHApCiAgICBydW5uZXIgPSB3ZWIuQXBwUnVubmVyKGFpbykKICAgIGF3YWl0IHJ1bm5lci5zZXR1cCgpCiAgICBzaXRlID0gd2ViLlRDUFNpdGUocnVubmVyLCAiMC4wLjAuMCIsIGNvbmZpZy5QT1JUKQogICAgYXdhaXQgc2l0ZS5zdGFydCgpCiAgICBsb2cuaW5mbygiSFRUUCBsaXN0ZW5pbmcgb24gJXMiLCBjb25maWcuUE9SVCkKICAgIHN0b3AgPSBhc3luY2lvLkV2ZW50KCkKICAgIHRyeToKICAgICAgICBhd2FpdCBzdG9wLndhaXQoKQogICAgZmluYWxseToKICAgICAgICBhd2FpdCBydW5uZXIuY2xlYW51cCgpCiAgICAgICAgYXdhaXQgYXBwLnN0b3AoKQogICAgICAgIGF3YWl0IGFwcC5zaHV0ZG93bigpCgphc3luYyBkZWYgcnVuX3BvbGxpbmcoYXBwOiBBcHBsaWNhdGlvbik6CiAgICBhd2FpdCBhcHAuaW5pdGlhbGl6ZSgpCiAgICBhaW8gPSBidWlsZF9hcHAoYXBwKQogICAgcnVubmVyID0gd2ViLkFwcFJ1bm5lcihhaW8pOyBhd2FpdCBydW5uZXIuc2V0dXAoKQogICAgc2l0ZSA9IHdlYi5UQ1BTaXRlKHJ1bm5lciwgIjAuMC4wLjAiLCBjb25maWcuUE9SVCk7IGF3YWl0IHNpdGUuc3RhcnQoKQogICAgbG9nLmluZm8oIkhUVFAgbGlzdGVuaW5nIG9uICVzIChwb2xsaW5nIG1vZGUpIiwgY29uZmlnLlBPUlQpCiAgICBhd2FpdCBhcHAuYm90LmRlbGV0ZV93ZWJob29rKGRyb3BfcGVuZGluZ191cGRhdGVzPVRydWUpCiAgICBhd2FpdCBhcHAuc3RhcnQoKQogICAgYXdhaXQgYXBwLnVwZGF0ZXIuc3RhcnRfcG9sbGluZyhhbGxvd2VkX3VwZGF0ZXM9VXBkYXRlLkFMTF9UWVBFUywgZHJvcF9wZW5kaW5nX3VwZGF0ZXM9VHJ1ZSkKICAgIHN0b3AgPSBhc3luY2lvLkV2ZW50KCkKICAgIHRyeToKICAgICAgICBhd2FpdCBzdG9wLndhaXQoKQogICAgZmluYWxseToKICAgICAgICBhd2FpdCBhcHAudXBkYXRlci5zdG9wKCkKICAgICAgICBhd2FpdCBhcHAuc3RvcCgpCiAgICAgICAgYXdhaXQgYXBwLnNodXRkb3duKCkKICAgICAgICBhd2FpdCBydW5uZXIuY2xlYW51cCgpCgpkZWYgbWFpbigpOgogICAgYXBwID0gYnVpbGRfYXBwX29iaigpCiAgICBpZiBjb25maWcuVVNFX1dFQkhPT0sgYW5kIGNvbmZpZy5XRUJIT09LX1VSTCA6CiAgICAgICAgYXN5bmNpby5ydW4ocnVuX3dlYmhvb2soYXBwKSkKICAgIGVsc2U6CiAgICAgICAgYXN5bmNpby5ydW4ocnVuX3BvbGxpbmcoYXBwKSkKCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBtYWluKCkK
+import asyncio
+import logging
+import sys
+from telegram import Update
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from aiohttp import web
+
+import config
+from database.pool import init_pool, close_pool, db
+from services.scheduler_service import start as start_sched, stop as stop_sched
+from services.health_server import build_app
+from services.notification_service import notify_superadmin
+
+from handlers.start import start_handler, universal_cancel
+from handlers.common.help import help_cmd
+from handlers.callbacks import callback_router
+from handlers.advertiser.wallet import build_topup_conv
+from handlers.advertiser.booking_flow import build_booking_conv
+from handlers.owner.channel_setup import build_setup_conv
+from handlers.owner.booking_mgmt import build_reject_conv, approve_booking
+from handlers.owner.earnings import build_payout_conv
+from handlers.admin.financial import build_payout_admin_conv
+from handlers.admin.user_mgmt import build_user_admin_conv
+from handlers.admin.platform_settings import build_settings_conv
+from handlers.admin.broadcast import build_bcast_conv
+from handlers.admin.platform_settings import toggle_setting
+from handlers.admin.pricing_engine import build_pricing_conv
+from handlers.admin.dashboard import admin_panel
+from handlers.advertiser.my_bookings import my_bookings
+from handlers.advertiser.browse import browse_panel
+from handlers.owner.dashboard import my_channels
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s", stream=sys.stdout)
+log = logging.getLogger("main")
+
+async def _post_init(app: Application):
+    await init_pool()
+    start_sched(app.bot)
+    log.info("DB + scheduler ready")
+    try:
+        from telegram import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
+        public_cmds = [
+            BotCommand("start","Open the main menu"),
+            BotCommand("help","How it works"),
+            BotCommand("wallet","Open your wallet"),
+            BotCommand("bookings","View your bookings"),
+            BotCommand("channels","Manage your channels"),
+            BotCommand("browse","Browse channels"),
+            BotCommand("cancel","Cancel current action"),
+        ]
+        await app.bot.set_my_commands(public_cmds, scope=BotCommandScopeDefault())
+        for sid in config.SUPERADMIN_IDS:
+            try:
+                await app.bot.set_my_commands(public_cmds + [BotCommand("admin","Open admin panel")], scope=BotCommandScopeChat(chat_id=sid))
+            except Exception as e:
+                log.warning("admin commands set failed for %s: %s", sid, e)
+    except Exception as e:
+        log.warning("set_my_commands failed: %s", e)
+    try:
+        await notify_superadmin(app.bot, f"🟢 {config.PLATFORM_NAME} started.")
+    except Exception as e:
+        log.warning("notify start failed: %s", e)
+
+async def _post_shutdown(app: Application):
+    stop_sched()
+    await close_pool()
+
+def build_app_obj():
+    if not config.BOT_TOKEN:
+        raise RuntimeError("BOT_TOKEN not set")
+    app = Application.builder().token(config.BOT_TOKEN).post_init(_post_init).post_shutdown(_post_shutdown).build()
+
+    app.add_handler(build_setup_conv())
+    app.add_handler(build_booking_conv())
+    app.add_handler(build_topup_conv())
+    app.add_handler(build_payout_conv())
+    app.add_handler(build_reject_conv())
+    app.add_handler(build_payout_admin_conv())
+    app.add_handler(build_user_admin_conv())
+    app.add_handler(build_settings_conv())
+    app.add_handler(build_bcast_conv())
+    app.add_handler(build_pricing_conv())
+    from telegram.ext import CallbackQueryHandler as _CQH
+    app.add_handler(_CQH(toggle_setting, pattern=r"^admin:tog:[a-z_]+$"))
+
+    app.add_handler(CommandHandler("start", start_handler))
+    app.add_handler(CommandHandler("admin", admin_panel))
+    app.add_handler(CommandHandler("help", help_cmd))
+    app.add_handler(CommandHandler("wallet", lambda u,c: u.message.reply_text("Open /start menu → 💰 My Wallet")))
+    app.add_handler(CommandHandler("bookings", lambda u,c: u.message.reply_text("Open /start menu → 📋 My Bookings")))
+    app.add_handler(CommandHandler("channels", lambda u,c: u.message.reply_text("Open /start menu → 📢 My Channels")))
+    app.add_handler(CommandHandler("browse", lambda u,c: u.message.reply_text("Open /start menu → 🔍 Browse Channels")))
+    app.add_handler(CommandHandler("cancel", universal_cancel))
+
+    app.add_handler(CallbackQueryHandler(callback_router))
+
+    async def err_handler(update, context):
+        log.exception("Unhandled: %s", context.error)
+    app.add_error_handler(err_handler)
+
+    return app
+
+async def run_webhook(app: Application):
+    await app.initialize()
+    await app.start()
+    url = f"{config.WEBHOOK_URL}/webhook"
+    await app.bot.set_webhook(url=url, secret_token=config.WEBHOOK_SECRET, allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    log.info("Webhook set: %s", url)
+    aio = build_app(app)
+    runner = web.AppRunner(aio)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", config.PORT)
+    await site.start()
+    log.info("HTTP listening on %s", config.PORT)
+    stop = asyncio.Event()
+    try:
+        await stop.wait()
+    finally:
+        await runner.cleanup()
+        await app.stop()
+        await app.shutdown()
+
+async def run_polling(app: Application):
+    await app.initialize()
+    aio = build_app(app)
+    runner = web.AppRunner(aio); await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", config.PORT); await site.start()
+    log.info("HTTP listening on %s (polling mode)", config.PORT)
+    await app.bot.delete_webhook(drop_pending_updates=True)
+    await app.start()
+    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    stop = asyncio.Event()
+    try:
+        await stop.wait()
+    finally:
+        await app.updater.stop()
+        await app.stop()
+        await app.shutdown()
+        await runner.cleanup()
+
+def main():
+    app = build_app_obj()
+    if config.USE_WEBHOOK and config.WEBHOOK_URL :
+        asyncio.run(run_webhook(app))
+    else:
+        asyncio.run(run_polling(app))
+
+if __name__ == "__main__":
+    main()

@@ -1,1 +1,18 @@
-LS0gRW5zdXJlcyBzb2Z0LWRlbGV0ZSBjb2x1bW4gb24gY2hhbm5lbHMgKGlkZW1wb3RlbnQpCkFMVEVSIFRBQkxFIGNoYW5uZWxzIEFERCBDT0xVTU4gSUYgTk9UIEVYSVNUUyBpc19hY3RpdmUgQk9PTEVBTiBERUZBVUxUIFRSVUU7ClVQREFURSBjaGFubmVscyBTRVQgaXNfYWN0aXZlPVRSVUUgV0hFUkUgaXNfYWN0aXZlIElTIE5VTEw7CgotLSBQcmljaW5nLWVuZ2luZSBjb25maWcga2V5cyAoc2FmZSBpbnNlcnRzKQpJTlNFUlQgSU5UTyBwbGF0Zm9ybV9zZXR0aW5ncyAoa2V5LCB2YWx1ZSwgdXBkYXRlZF9hdCkgVkFMVUVTCiAgKCdiYXNlX3ByaWNlX3Blcl9wb3N0X2NyZWRpdHMnLCc1JyxOT1coKSksCiAgKCdwcmljZV9wZXJfMWtfc3Vic2NyaWJlcnMnLCcyJyxOT1coKSksCiAgKCdwcmljZV9wZXJfMTAwX3ZpZXdzJywnMScsTk9XKCkpLAogICgnYWN0aXZpdHlfbXVsdGlwbGllcl9oaWdoJywnMS41JyxOT1coKSksCiAgKCdhY3Rpdml0eV9tdWx0aXBsaWVyX21lZGl1bScsJzEuMCcsTk9XKCkpLAogICgnYWN0aXZpdHlfbXVsdGlwbGllcl9sb3cnLCcwLjcnLE5PVygpKSwKICAoJ21pbl9saXN0aW5nX3ByaWNlJywnMScsTk9XKCkpLAogICgnbWF4X2xpc3RpbmdfcHJpY2UnLCcxMDAwMCcsTk9XKCkpLAogICgnd2F0ZXJtYXJrX2VuYWJsZWQnLCd0cnVlJyxOT1coKSksCiAgKCdtYXJrZXRwbGFjZV9lbmFibGVkJywndHJ1ZScsTk9XKCkpLAogICgnbWFpbnRlbmFuY2VfbW9kZScsJ2ZhbHNlJyxOT1coKSkKT04gQ09ORkxJQ1QgKGtleSkgRE8gTk9USElORzsK
+-- Ensures soft-delete column on channels (idempotent)
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+UPDATE channels SET is_active=TRUE WHERE is_active IS NULL;
+
+-- Pricing-engine config keys (safe inserts)
+INSERT INTO platform_settings (key, value, updated_at) VALUES
+  ('base_price_per_post_credits','5',NOW()),
+  ('price_per_1k_subscribers','2',NOW()),
+  ('price_per_100_views','1',NOW()),
+  ('activity_multiplier_high','1.5',NOW()),
+  ('activity_multiplier_medium','1.0',NOW()),
+  ('activity_multiplier_low','0.7',NOW()),
+  ('min_listing_price','1',NOW()),
+  ('max_listing_price','10000',NOW()),
+  ('watermark_enabled','true',NOW()),
+  ('marketplace_enabled','true',NOW()),
+  ('maintenance_mode','false',NOW())
+ON CONFLICT (key) DO NOTHING;

@@ -1,1 +1,84 @@
-ZnJvbSBkYXRhYmFzZS5wb29sIGltcG9ydCBkYgoKYXN5bmMgZGVmIGdldF9jaGFubmVsKGNoYW5uZWxfaWQpOgogICAgcmV0dXJuIGF3YWl0IGRiLmZldGNocm93KCJTRUxFQ1QgYy4qLCBjYXQubmFtZSBhcyBjYXRlZ29yeV9uYW1lLCBjYXQuZW1vamkgYXMgY2F0ZWdvcnlfZW1vamkgRlJPTSBjaGFubmVscyBjIExFRlQgSk9JTiBjaGFubmVsX2NhdGVnb3JpZXMgY2F0IE9OIGNhdC5jYXRlZ29yeV9pZD1jLmNhdGVnb3J5X2lkIFdIRVJFIGMuY2hhbm5lbF9pZD0kMSIsIGNoYW5uZWxfaWQpCgphc3luYyBkZWYgZ2V0X2NoYW5uZWxfYnlfY2hhdChjaGF0X2lkKToKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaHJvdygiU0VMRUNUICogRlJPTSBjaGFubmVscyBXSEVSRSB0ZWxlZ3JhbV9jaGF0X2lkPSQxIiwgY2hhdF9pZCkKCmFzeW5jIGRlZiBsaXN0X293bmVyX2NoYW5uZWxzKG93bmVyX2lkKToKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaCgiU0VMRUNUICogRlJPTSBjaGFubmVscyBXSEVSRSBvd25lcl9pZD0kMSBBTkQgaXNfYWN0aXZlPVRSVUUgT1JERVIgQlkgYWRkZWRfYXQgREVTQyIsIG93bmVyX2lkKQoKYXN5bmMgZGVmIGNvdW50X293bmVyX2NoYW5uZWxzKG93bmVyX2lkKToKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaHZhbCgiU0VMRUNUIENPVU5UKCopIEZST00gY2hhbm5lbHMgV0hFUkUgb3duZXJfaWQ9JDEgQU5EIGlzX2FjdGl2ZT1UUlVFIiwgb3duZXJfaWQpIG9yIDAKCmFzeW5jIGRlZiBjcmVhdGVfY2hhbm5lbCgqKmt3KToKICAgIGtleXMgPSBsaXN0KGt3LmtleXMoKSkKICAgIHBsYWNlaG9sZGVycyA9ICIsIi5qb2luKGYiJHtpKzF9IiBmb3IgaSBpbiByYW5nZShsZW4oa2V5cykpKQogICAgY29scyA9ICIsIi5qb2luKGtleXMpCiAgICBxID0gZiJJTlNFUlQgSU5UTyBjaGFubmVscyAoe2NvbHN9KSBWQUxVRVMgKHtwbGFjZWhvbGRlcnN9KSBSRVRVUk5JTkcgY2hhbm5lbF9pZCIKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaHZhbChxLCAqW2t3W2tdIGZvciBrIGluIGtleXNdKQoKYXN5bmMgZGVmIHVwZGF0ZV9jaGFubmVsKGNoYW5uZWxfaWQsICoqa3cpOgogICAgaWYgbm90IGt3OiByZXR1cm4KICAgIHNldHMgPSAiLCIuam9pbihmIntrfT0ke2krMn0iIGZvciBpLGsgaW4gZW51bWVyYXRlKGt3LmtleXMoKSkpCiAgICBxID0gZiJVUERBVEUgY2hhbm5lbHMgU0VUIHtzZXRzfSBXSEVSRSBjaGFubmVsX2lkPSQxIgogICAgYXdhaXQgZGIuZXhlY3V0ZShxLCBjaGFubmVsX2lkLCAqa3cudmFsdWVzKCkpCgphc3luYyBkZWYgbGlzdF9tYXJrZXRwbGFjZShjYXRlZ29yeV9pZD1Ob25lLCBhY3Rpdml0eV90aWVyPU5vbmUsIGJ1ZGdldF9tYXg9Tm9uZSwgbWluX3N1YnM9Tm9uZSwgc29ydD0icmF0aW5nIiwgb2Zmc2V0PTAsIGxpbWl0PTUpOgogICAgd2hlcmUgPSBbImlzX2xpc3RlZD1UUlVFIiwiaXNfcGF1c2VkPUZBTFNFIiwiaXNfc3VzcGVuZGVkPUZBTFNFIiwiaXNfdmVyaWZpZWQ9VFJVRSIsImlzX2FjdGl2ZT1UUlVFIl0KICAgIHBhcmFtcyA9IFtdCiAgICBpZiBjYXRlZ29yeV9pZDoKICAgICAgICBwYXJhbXMuYXBwZW5kKGNhdGVnb3J5X2lkKTsgd2hlcmUuYXBwZW5kKGYiY2F0ZWdvcnlfaWQ9JHtsZW4ocGFyYW1zKX0iKQogICAgaWYgYWN0aXZpdHlfdGllcjoKICAgICAgICBwYXJhbXMuYXBwZW5kKGFjdGl2aXR5X3RpZXIpOyB3aGVyZS5hcHBlbmQoZiJhY3Rpdml0eV90aWVyPSR7bGVuKHBhcmFtcyl9IikKICAgIGlmIGJ1ZGdldF9tYXg6CiAgICAgICAgcGFyYW1zLmFwcGVuZChidWRnZXRfbWF4KTsgd2hlcmUuYXBwZW5kKGYiZmluYWxfcHJpY2VfY3JlZGl0czw9JHtsZW4ocGFyYW1zKX0iKQogICAgaWYgbWluX3N1YnM6CiAgICAgICAgcGFyYW1zLmFwcGVuZChtaW5fc3Vicyk7IHdoZXJlLmFwcGVuZChmInN1YnNjcmliZXJfY291bnQ+PSR7bGVuKHBhcmFtcyl9IikKICAgIG9yZGVyID0gewogICAgICAgICJyYXRpbmciOiJyYXRpbmcgREVTQywgcmF0aW5nX2NvdW50IERFU0MiLAogICAgICAgICJwcmljZV9hc2MiOiJmaW5hbF9wcmljZV9jcmVkaXRzIEFTQyIsCiAgICAgICAgInByaWNlX2Rlc2MiOiJmaW5hbF9wcmljZV9jcmVkaXRzIERFU0MiLAogICAgICAgICJzdWJzIjoic3Vic2NyaWJlcl9jb3VudCBERVNDIiwKICAgICAgICAiYWN0aXZpdHkiOiJhY3Rpdml0eV9zY29yZSBERVNDIiwKICAgIH0uZ2V0KHNvcnQsICJyYXRpbmcgREVTQyIpCiAgICBwYXJhbXMuZXh0ZW5kKFtsaW1pdCwgb2Zmc2V0XSkKICAgIHEgPSBmIiIiU0VMRUNUIGMuKiwgY2F0Lm5hbWUgYXMgY2F0ZWdvcnlfbmFtZSwgY2F0LmVtb2ppIGFzIGNhdGVnb3J5X2Vtb2ppCiAgICAgICAgRlJPTSBjaGFubmVscyBjIExFRlQgSk9JTiBjaGFubmVsX2NhdGVnb3JpZXMgY2F0IE9OIGNhdC5jYXRlZ29yeV9pZD1jLmNhdGVnb3J5X2lkCiAgICAgICAgV0hFUkUgeycgQU5EICcuam9pbih3aGVyZSl9IE9SREVSIEJZIHtvcmRlcn0gTElNSVQgJHtsZW4ocGFyYW1zKS0xfSBPRkZTRVQgJHtsZW4ocGFyYW1zKX0iIiIKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaChxLCAqcGFyYW1zKQoKYXN5bmMgZGVmIGNvdW50X21hcmtldHBsYWNlKGNhdGVnb3J5X2lkPU5vbmUsIGFjdGl2aXR5X3RpZXI9Tm9uZSwgYnVkZ2V0X21heD1Ob25lLCBtaW5fc3Vicz1Ob25lKToKICAgIHdoZXJlID0gWyJpc19saXN0ZWQ9VFJVRSIsImlzX3BhdXNlZD1GQUxTRSIsImlzX3N1c3BlbmRlZD1GQUxTRSIsImlzX3ZlcmlmaWVkPVRSVUUiLCJpc19hY3RpdmU9VFJVRSJdCiAgICBwYXJhbXMgPSBbXQogICAgaWYgY2F0ZWdvcnlfaWQ6CiAgICAgICAgcGFyYW1zLmFwcGVuZChjYXRlZ29yeV9pZCk7IHdoZXJlLmFwcGVuZChmImNhdGVnb3J5X2lkPSR7bGVuKHBhcmFtcyl9IikKICAgIGlmIGFjdGl2aXR5X3RpZXI6CiAgICAgICAgcGFyYW1zLmFwcGVuZChhY3Rpdml0eV90aWVyKTsgd2hlcmUuYXBwZW5kKGYiYWN0aXZpdHlfdGllcj0ke2xlbihwYXJhbXMpfSIpCiAgICBpZiBidWRnZXRfbWF4OgogICAgICAgIHBhcmFtcy5hcHBlbmQoYnVkZ2V0X21heCk7IHdoZXJlLmFwcGVuZChmImZpbmFsX3ByaWNlX2NyZWRpdHM8PSR7bGVuKHBhcmFtcyl9IikKICAgIGlmIG1pbl9zdWJzOgogICAgICAgIHBhcmFtcy5hcHBlbmQobWluX3N1YnMpOyB3aGVyZS5hcHBlbmQoZiJzdWJzY3JpYmVyX2NvdW50Pj0ke2xlbihwYXJhbXMpfSIpCiAgICBxID0gZiJTRUxFQ1QgQ09VTlQoKikgRlJPTSBjaGFubmVscyBXSEVSRSB7JyBBTkQgJy5qb2luKHdoZXJlKX0iCiAgICByZXR1cm4gYXdhaXQgZGIuZmV0Y2h2YWwocSwgKnBhcmFtcykgb3IgMAoKYXN5bmMgZGVmIGxpc3RfYWxsX2NhdGVnb3JpZXMoKToKICAgIHJldHVybiBhd2FpdCBkYi5mZXRjaCgiU0VMRUNUICogRlJPTSBjaGFubmVsX2NhdGVnb3JpZXMgV0hFUkUgaXNfYWN0aXZlPVRSVUUgT1JERVIgQlkgc29ydF9vcmRlciIpCgphc3luYyBkZWYgbGlzdF9hbGxfbGlzdGVkKCk6CiAgICByZXR1cm4gYXdhaXQgZGIuZmV0Y2goIlNFTEVDVCAqIEZST00gY2hhbm5lbHMgV0hFUkUgaXNfbGlzdGVkPVRSVUUgQU5EIGlzX3N1c3BlbmRlZD1GQUxTRSBBTkQgaXNfYWN0aXZlPVRSVUUiKQoKYXN5bmMgZGVmIGxpc3RfYWxsX3ZlcmlmaWVkKCk6CiAgICByZXR1cm4gYXdhaXQgZGIuZmV0Y2goIlNFTEVDVCAqIEZST00gY2hhbm5lbHMgV0hFUkUgaXNfdmVyaWZpZWQ9VFJVRSBBTkQgaXNfYWN0aXZlPVRSVUUiKQoKYXN5bmMgZGVmIGNvdW50X2NoYW5uZWxzKCk6CiAgICByZXR1cm4gYXdhaXQgZGIuZmV0Y2h2YWwoIlNFTEVDVCBDT1VOVCgqKSBGUk9NIGNoYW5uZWxzIFdIRVJFIGlzX2xpc3RlZD1UUlVFIEFORCBpc19hY3RpdmU9VFJVRSIpIG9yIDAKCmFzeW5jIGRlZiB1cGRhdGVfcmF0aW5nKGNoYW5uZWxfaWQpOgogICAgYXdhaXQgZGIuZXhlY3V0ZSgiIiIKICAgICAgICBVUERBVEUgY2hhbm5lbHMgU0VUIAogICAgICAgICAgcmF0aW5nPShTRUxFQ1QgQ09BTEVTQ0UoQVZHKHJhdGluZyksMCkgRlJPTSByZXZpZXdzIFdIRVJFIGNoYW5uZWxfaWQ9JDEgQU5EIGlzX3Zpc2libGU9VFJVRSksCiAgICAgICAgICByYXRpbmdfY291bnQ9KFNFTEVDVCBDT1VOVCgqKSBGUk9NIHJldmlld3MgV0hFUkUgY2hhbm5lbF9pZD0kMSBBTkQgaXNfdmlzaWJsZT1UUlVFKQogICAgICAgIFdIRVJFIGNoYW5uZWxfaWQ9JDEKICAgICIiIiwgY2hhbm5lbF9pZCkK
+from database.pool import db
+
+async def get_channel(channel_id):
+    return await db.fetchrow("SELECT c.*, cat.name as category_name, cat.emoji as category_emoji FROM channels c LEFT JOIN channel_categories cat ON cat.category_id=c.category_id WHERE c.channel_id=$1", channel_id)
+
+async def get_channel_by_chat(chat_id):
+    return await db.fetchrow("SELECT * FROM channels WHERE telegram_chat_id=$1", chat_id)
+
+async def list_owner_channels(owner_id):
+    return await db.fetch("SELECT * FROM channels WHERE owner_id=$1 AND is_active=TRUE ORDER BY added_at DESC", owner_id)
+
+async def count_owner_channels(owner_id):
+    return await db.fetchval("SELECT COUNT(*) FROM channels WHERE owner_id=$1 AND is_active=TRUE", owner_id) or 0
+
+async def create_channel(**kw):
+    keys = list(kw.keys())
+    placeholders = ",".join(f"${i+1}" for i in range(len(keys)))
+    cols = ",".join(keys)
+    q = f"INSERT INTO channels ({cols}) VALUES ({placeholders}) RETURNING channel_id"
+    return await db.fetchval(q, *[kw[k] for k in keys])
+
+async def update_channel(channel_id, **kw):
+    if not kw: return
+    sets = ",".join(f"{k}=${i+2}" for i,k in enumerate(kw.keys()))
+    q = f"UPDATE channels SET {sets} WHERE channel_id=$1"
+    await db.execute(q, channel_id, *kw.values())
+
+async def list_marketplace(category_id=None, activity_tier=None, budget_max=None, min_subs=None, sort="rating", offset=0, limit=5):
+    where = ["is_listed=TRUE","is_paused=FALSE","is_suspended=FALSE","is_verified=TRUE","is_active=TRUE"]
+    params = []
+    if category_id:
+        params.append(category_id); where.append(f"category_id=${len(params)}")
+    if activity_tier:
+        params.append(activity_tier); where.append(f"activity_tier=${len(params)}")
+    if budget_max:
+        params.append(budget_max); where.append(f"final_price_credits<=${len(params)}")
+    if min_subs:
+        params.append(min_subs); where.append(f"subscriber_count>=${len(params)}")
+    order = {
+        "rating":"rating DESC, rating_count DESC",
+        "price_asc":"final_price_credits ASC",
+        "price_desc":"final_price_credits DESC",
+        "subs":"subscriber_count DESC",
+        "activity":"activity_score DESC",
+    }.get(sort, "rating DESC")
+    params.extend([limit, offset])
+    q = f"""SELECT c.*, cat.name as category_name, cat.emoji as category_emoji
+        FROM channels c LEFT JOIN channel_categories cat ON cat.category_id=c.category_id
+        WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ${len(params)-1} OFFSET ${len(params)}"""
+    return await db.fetch(q, *params)
+
+async def count_marketplace(category_id=None, activity_tier=None, budget_max=None, min_subs=None):
+    where = ["is_listed=TRUE","is_paused=FALSE","is_suspended=FALSE","is_verified=TRUE","is_active=TRUE"]
+    params = []
+    if category_id:
+        params.append(category_id); where.append(f"category_id=${len(params)}")
+    if activity_tier:
+        params.append(activity_tier); where.append(f"activity_tier=${len(params)}")
+    if budget_max:
+        params.append(budget_max); where.append(f"final_price_credits<=${len(params)}")
+    if min_subs:
+        params.append(min_subs); where.append(f"subscriber_count>=${len(params)}")
+    q = f"SELECT COUNT(*) FROM channels WHERE {' AND '.join(where)}"
+    return await db.fetchval(q, *params) or 0
+
+async def list_all_categories():
+    return await db.fetch("SELECT * FROM channel_categories WHERE is_active=TRUE ORDER BY sort_order")
+
+async def list_all_listed():
+    return await db.fetch("SELECT * FROM channels WHERE is_listed=TRUE AND is_suspended=FALSE AND is_active=TRUE")
+
+async def list_all_verified():
+    return await db.fetch("SELECT * FROM channels WHERE is_verified=TRUE AND is_active=TRUE")
+
+async def count_channels():
+    return await db.fetchval("SELECT COUNT(*) FROM channels WHERE is_listed=TRUE AND is_active=TRUE") or 0
+
+async def update_rating(channel_id):
+    await db.execute("""
+        UPDATE channels SET 
+          rating=(SELECT COALESCE(AVG(rating),0) FROM reviews WHERE channel_id=$1 AND is_visible=TRUE),
+          rating_count=(SELECT COUNT(*) FROM reviews WHERE channel_id=$1 AND is_visible=TRUE)
+        WHERE channel_id=$1
+    """, channel_id)
