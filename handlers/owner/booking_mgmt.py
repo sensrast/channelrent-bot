@@ -1,3 +1,7 @@
+from telegram.ext import CommandHandler as _CmdHandler
+async def _univ_cancel(u,c):
+    from telegram.ext import ConversationHandler
+    return ConversationHandler.END
 import logging
 from datetime import datetime, timezone, timedelta
 from telegram import Update
@@ -72,7 +76,8 @@ def build_reject_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(reject_start, pattern=r"^owner:rej:\d+$")],
         states={REJECT_REASON: [MessageHandler(filters.TEXT & ~filters.COMMAND, reject_finish)]},
-        fallbacks=[],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True,
     )

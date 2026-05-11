@@ -1,3 +1,7 @@
+from telegram.ext import CommandHandler as _CmdHandler
+async def _univ_cancel(u,c):
+    from telegram.ext import ConversationHandler
+    return ConversationHandler.END
 import config
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
@@ -119,4 +123,5 @@ def build_topup_conv():
         fallbacks=[CallbackQueryHandler(lambda u,c: ConversationHandler.END, pattern=r"^adv:wallet$")],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True,
     )

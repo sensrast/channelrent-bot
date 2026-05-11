@@ -1,3 +1,7 @@
+from telegram.ext import CommandHandler as _CmdHandler
+async def _univ_cancel(u,c):
+    from telegram.ext import ConversationHandler
+    return ConversationHandler.END
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
@@ -110,7 +114,8 @@ def build_user_admin_conv():
             SEARCH:[MessageHandler(filters.TEXT & ~filters.COMMAND, user_search_do)],
             CRED_AMT:[MessageHandler(filters.TEXT & ~filters.COMMAND, cred_finish)],
         },
-        fallbacks=[],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True,
     )
