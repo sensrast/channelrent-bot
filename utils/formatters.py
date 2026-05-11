@@ -1,8 +1,19 @@
 from datetime import datetime, timezone
 
 def fmt_credits(n):
-    try: return f"{int(n):,}"
-    except: return str(n)
+    try:
+        from decimal import Decimal
+        if n is None: return "0"
+        if isinstance(n, (int,)):
+            return f"{n:,}"
+        d = Decimal(str(n))
+        if d == d.to_integral_value():
+            return f"{int(d):,}"
+        q = d.quantize(Decimal("0.01"))
+        s = f"{q:,.2f}".rstrip("0").rstrip(".")
+        return s
+    except Exception:
+        return str(n)
 
 def fmt_time_remaining(end_dt):
     if not end_dt: return "-"

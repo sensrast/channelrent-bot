@@ -30,17 +30,20 @@ async def settle_booking(booking_id, deletion_type, deleted_at=None):
                 final_status = "cancelled"
             else:
                 if posted.tzinfo is None: posted = posted.replace(tzinfo=timezone.utc)
-                elapsed_h = max(0, (deleted_at - posted).total_seconds() / 3600.0)
-                elapsed_h = min(elapsed_h, duration_h)
+                from decimal import Decimal, ROUND_HALF_UP
+                elapsed_seconds = max(0.0, (deleted_at - posted).total_seconds())
+                max_seconds = float(duration_h) * 3600.0
+                elapsed_seconds = min(elapsed_seconds, max_seconds)
                 if deletion_type in ("owner_deleted","message_lost","admin_deleted"):
                     refund = total
                     owner_earn = 0
                     commission = 0
                     final_status = "completed_early"
                 else:
-                    credits_used = int(round(price_per_h * elapsed_h))
-                    credits_used = min(credits_used, total)
-                    refund = total - credits_used
+                    pph = Decimal(str(price_per_h))
+                    credits_used = (pph * Decimal(elapsed_seconds) / Decimal(3600)).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+                    if credits_used > Decimal(str(total)): credits_used = Decimal(str(total))
+                    refund = (Decimal(str(total)) - credits_used).quantize(Decimal("0.0001"))
                     commission, owner_earn = commission_split(credits_used)
                     final_status = "completed" if deletion_type == "scheduled" else "completed_early"
             await conn.execute("""UPDATE bookings SET

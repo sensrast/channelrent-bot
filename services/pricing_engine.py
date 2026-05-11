@@ -41,7 +41,9 @@ def clamp_owner_price(suggested, custom):
     return max(lo, min(int(custom), hi))
 
 def commission_split(total_credits):
-    pct = config.PLATFORM_COMMISSION_PERCENT
-    commission = int(round(total_credits * pct / 100.0))
-    owner = total_credits - commission
+    from decimal import Decimal, ROUND_HALF_UP
+    pct = Decimal(str(config.PLATFORM_COMMISSION_PERCENT))
+    total = Decimal(str(total_credits))
+    commission = (total * pct / Decimal(100)).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+    owner = (total - commission).quantize(Decimal("0.0001"))
     return commission, owner
