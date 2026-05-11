@@ -1,0 +1,63 @@
+import json
+import logging
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.error import Forbidden, BadRequest, TelegramError
+import config
+
+log = logging.getLogger(__name__)
+
+WATERMARK = f"\n\n📢 Promoted via {config.PLATFORM_NAME}"
+
+def _buttons(buttons_json):
+    if not buttons_json: return None
+    try:
+        data = buttons_json if isinstance(buttons_json, list) else json.loads(buttons_json)
+        rows = [[InlineKeyboardButton(label, url=url) for label, url in data]]
+        return InlineKeyboardMarkup(rows)
+    except Exception:
+        return None
+
+async def post_to_channel(bot: Bot, booking, watermark=True):
+    chat_id = booking["telegram_chat_id"]
+    ct = booking["content_type"]
+    caption = (booking.get("caption") or "") + (WATERMARK if watermark else "")
+    text = (booking.get("content_text") or "") + (WATERMARK if watermark else "")
+    markup = _buttons(booking.get("inline_buttons_json"))
+    if ct == "text":
+        msg = await bot.send_message(chat_id, text, reply_markup=markup, disable_web_page_preview=False)
+    elif ct == "photo":
+        msg = await bot.send_photo(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
+    elif ct == "video":
+        msg = await bot.send_video(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
+    elif ct == "document":
+        msg = await bot.send_document(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
+    elif ct == "animation":
+        msg = await bot.send_animation(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
+    else:
+        raise ValueError(f"Unknown content_type {ct}")
+    return msg.message_id
+
+async def delete_from_channel(bot: Bot, chat_id, message_id):
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+        return True
+    except BadRequest as e:
+        log.info("delete failed bad request: %s", e)
+        return False
+    except Forbidden as e:
+        log.info("delete forbidden: %s", e)
+        return False
+    except TelegramError as e:
+        log.warning("delete error: %s", e)
+        return False
+
+async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
+    try:
+        fwd = await bot.forward_message(chat_id=target_chat_id, from_chat_id=from_chat_id, message_id=message_id, disable_notification=True)
+        try:
+            await bot.delete_message(target_chat_id, fwd.message_id)
+        except Exception:
+            pass
+        return True
+    except TelegramError:
+        return False
