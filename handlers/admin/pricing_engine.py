@@ -27,3 +27,12 @@ async def pricing_recalc(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update_channel(c["channel_id"], activity_score=score, activity_tier=tier, engagement_rate=eng, base_price_credits=price, final_price_credits=price)
         n += 1
     await q.edit_message_text(f"✅ Recalculated {n} channels.", reply_markup=kb([back("admin:panel")]))
+
+def build_pricing_conv():
+    from telegram.ext import CallbackQueryHandler
+    async def _router(update, context):
+        data = update.callback_query.data
+        if data == "admin:pricing:recalc":
+            return await pricing_recalc(update, context)
+        return await pricing_panel(update, context)
+    return CallbackQueryHandler(_router, pattern=r"^admin:pricing(:.*)?$")
