@@ -9,6 +9,12 @@ from utils.decorators import superadmin_only
 from utils.keyboards import kb, back
 from database.pool import db
 
+BOOL_KEYS = {"marketplace_enabled","maintenance_mode","watermark_enabled"}
+
+def _is_truthy(v):
+    return str(v).strip().lower() in ("1","true","yes","on","t","y")
+
+
 EDIT = 0
 
 KEYS = [
@@ -27,10 +33,30 @@ async def settings_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = "🔧 <b>Platform Settings</b>\n"
     kb_rows = []
     for k in KEYS:
-        txt += f"\n• <b>{k}</b>: <code>{vals.get(k,'?')}</code>"
-        kb_rows.append([(f"✏️ {k}", f"admin:set:{k}")])
+        cur = vals.get(k, "?")
+        if k in BOOL_KEYS:
+            on = _is_truthy(cur)
+            label = f"{'🟢 ON' if on else '🔴 OFF'} — {k}"
+            txt += f"\n• <b>{k}</b>: <code>{'ON' if on else 'OFF'}</code>"
+            kb_rows.append([(label, f"admin:tog:{k}")])
+        else:
+            txt += f"\n• <b>{k}</b>: <code>{cur}</code>"
+            kb_rows.append([(f"✏️ {k}", f"admin:set:{k}")])
     kb_rows.append(back("admin:panel"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+@superadmin_only
+async def toggle_setting(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    key = q.data.split(":", 2)[2]
+    if key not in BOOL_KEYS:
+        await q.answer("Not a toggle", show_alert=True); return
+    cur = await db.fetchval("SELECT value FROM platform_settings WHERE key=$1", key)
+    new_val = "false" if _is_truthy(cur) else "true"
+    await db.execute("UPDATE platform_settings SET value=$2, updated_at=NOW(), updated_by=$3 WHERE key=$1", key, new_val, q.from_user.id)
+    await settings_panel(update, context)
+
 
 async def set_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
