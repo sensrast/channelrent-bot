@@ -54,11 +54,21 @@ class DB:
 
     async def migrate(self):
         await self._ensure()
-        path = Path(__file__).parent / "migrations" / "001_schema.sql"
-        sql = path.read_text()
+        mig_dir = Path(__file__).parent / "migrations"
+        files = sorted(mig_dir.glob("*.sql"))
+        if not files:
+            log.warning("No migration files found in %s", mig_dir)
+            return
         async with self.pool.acquire() as conn:
-            await conn.execute(sql)
-        log.info("DB migrations applied")
+            for f in files:
+                try:
+                    sql = f.read_text()
+                    await conn.execute(sql)
+                    log.info("Applied migration: %s", f.name)
+                except Exception as e:
+                    log.error("Migration %s failed: %s", f.name, e)
+                    raise
+        log.info("All DB migrations applied (%d files)", len(files))
 
     async def fetch(self, q, *a):
         await self._ensure()
