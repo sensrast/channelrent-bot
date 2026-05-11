@@ -1,0 +1,28 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN', '')
+SUPERADMIN_IDS = [int(x) for x in os.getenv('SUPERADMIN_IDS', '').split(',') if x.strip()]
+BOT_USERNAME = os.getenv('BOT_USERNAME', 'ChannelRentBot')
+PLATFORM_NAME = os.getenv('PLATFORM_NAME', 'ChannelRent')
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+PORT = int(os.getenv('PORT', '10000'))
+WEBHOOK_URL = os.getenv('WEBHOOK_URL', '')
+USE_WEBHOOK = os.getenv('USE_WEBHOOK', 'true').lower() == 'true'
+CREDITS_PER_RUPEE = int(os.getenv('CREDITS_PER_RUPEE', '1'))
+MIN_TOPUP_CREDITS = int(os.getenv('MIN_TOPUP_CREDITS', '100'))
+MIN_WITHDRAWAL_CREDITS = int(os.getenv('MIN_WITHDRAWAL_CREDITS', '500'))
+PLATFORM_COMMISSION_PERCENT = int(os.getenv('PLATFORM_COMMISSION_PERCENT', '20'))
+BASE_PRICE_PER_POST_CREDITS = float(os.getenv('BASE_PRICE_PER_POST_CREDITS', '10'))
+PRICE_PER_1K_SUBSCRIBERS = float(os.getenv('PRICE_PER_1K_SUBSCRIBERS', '0.05'))
+PRICE_PER_100_VIEWS = float(os.getenv('PRICE_PER_100_VIEWS', '0.10'))
+ACTIVITY_MULTIPLIER_HIGH = float(os.getenv('ACTIVITY_MULTIPLIER_HIGH', '1.5'))
+ACTIVITY_MULTIPLIER_MEDIUM = float(os.getenv('ACTIVITY_MULTIPLIER_MEDIUM', '1.0'))
+ACTIVITY_MULTIPLIER_LOW = float(os.getenv('ACTIVITY_MULTIPLIER_LOW', '0.6'))
+MIN_LISTING_PRICE = int(os.getenv('MIN_LISTING_PRICE', '5'))
+MAX_LISTING_PRICE = int(os.getenv('MAX_LISTING_PRICE', '10000'))
+DELETION_CHECK_INTERVAL_SECONDS = int(os.getenv('DELETION_CHECK_INTERVAL_SECONDS', '60'))
+STATS_REFRESH_INTERVAL_HOURS = int(os.getenv('STATS_REFRESH_INTERVAL_HOURS', '6'))
+UPI_ID = os.getenv('UPI_ID', '')
+UPI_NAME = os.getenv('UPI_NAME', '')
+SUPPORT_USERNAME = os.getenv('SUPPORT_USERNAME', 'support')
