@@ -20,7 +20,7 @@ services:
       - key: USE_WEBHOOK
         value: "true"
       - key: BOT_USERNAME
-        sync: false
+        value: "Tele_marketplace_bot"
       - key: PLATFORM_NAME
         value: "ChannelRent"
       - key: UPI_ID
