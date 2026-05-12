@@ -180,11 +180,14 @@ async def force_sub_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception: pass
         return
     fs_en, fs_ch, is_mem, bot_ok = await _force_sub_check(context.bot, u.id)
+    # If force-sub is disabled or unset, just credit
     if not fs_en or not fs_ch:
         await _credit_referral(context.bot, u.id, row["pending_referrer_id"], u.first_name)
         try: await q.edit_message_text("🎉 Verified! Referral reward credited. Tap /start to begin.")
         except Exception: pass
         return
+    # If the bot cannot access the channel (misconfigured), do not block the user
+    # forever. Alert superadmin and grant the referral so users are never stuck.
     if not bot_ok:
         await _alert_force_sub_misconfig(context.bot, fs_ch, "verify-time: bot cannot read members")
         await _credit_referral(context.bot, u.id, row["pending_referrer_id"], u.first_name)
@@ -198,7 +201,16 @@ async def force_sub_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if not is_mem:
         try:
-            await q.answer("Not joined yet. Please join the channel first, then tap Verify again.", show_alert=True)
+            await q.answer("❌ You have not joined yet!", show_alert=True)
+        except Exception: pass
+        try:
+            await q.edit_message_text(
+                "❌ <b>You have not joined the channel yet!</b>\n\n"
+                "You must join our channel first to continue.\n"
+                "Tap <b>📢 Join Channel</b> below, then come back and tap <b>✅ I Joined — Verify</b> again.",
+                parse_mode="HTML",
+                reply_markup=_force_sub_keyboard(fs_ch),
+            )
         except Exception: pass
         return
     await _credit_referral(context.bot, u.id, row["pending_referrer_id"], u.first_name)
