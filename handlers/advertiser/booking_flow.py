@@ -89,8 +89,8 @@ async def _validate_duration(target, context, hours):
         return ConversationHandler.END
     b["hours"] = hours; b["total"] = total
     txt = (f"📤 <b>Send Your Ad Content</b>\n\n"
-           f"Send text, photo, video, document, or animation.\n\n"
-           f"━━━ Channel Rules ━━━\n"
+           f"Send text (with links) or an image. ❌ No videos, GIFs, MP4s, or stickers.\n\n"
+           f"─── Channel Rules ───\n"
            f"✅ {c['allowed_content']}\n"
            f"❌ {c['forbidden_content']}\n\n"
            f"Send /cancel to abort.")
@@ -113,18 +113,22 @@ async def get_content(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not b:
         await m.reply_text("Session expired.")
         return ConversationHandler.END
-    if m.photo:
-        b["content_type"]="photo"; b["media_file_id"]=m.photo[-1].file_id; b["caption"]=m.caption or ""; b["content_text"]=None
-    elif m.video:
-        b["content_type"]="video"; b["media_file_id"]=m.video.file_id; b["caption"]=m.caption or ""; b["content_text"]=None
-    elif m.document:
+    if m.video or m.animation or m.sticker or m.video_note or m.voice or m.audio:
+        await m.reply_text("❌ Videos, GIFs, MP4s, stickers, voice and audio are not allowed. Please send text (with links) or an image.")
+        return GET_CONTENT
+    if m.document:
+        mt = (getattr(m.document, "mime_type", "") or "").lower()
+        fn = (getattr(m.document, "file_name", "") or "").lower()
+        if mt.startswith("video/") or mt == "image/gif" or fn.endswith((".mp4", ".mov", ".webm", ".gif", ".mkv", ".avi")):
+            await m.reply_text("❌ Video/MP4/GIF files are not allowed. Please send text (with links) or an image.")
+            return GET_CONTENT
         b["content_type"]="document"; b["media_file_id"]=m.document.file_id; b["caption"]=m.caption or ""; b["content_text"]=None
-    elif m.animation:
-        b["content_type"]="animation"; b["media_file_id"]=m.animation.file_id; b["caption"]=m.caption or ""; b["content_text"]=None
+    elif m.photo:
+        b["content_type"]="photo"; b["media_file_id"]=m.photo[-1].file_id; b["caption"]=m.caption or ""; b["content_text"]=None
     elif m.text:
         b["content_type"]="text"; b["content_text"]=m.text; b["caption"]=None; b["media_file_id"]=None
     else:
-        await m.reply_text("Unsupported content. Send text, photo, video, document, or GIF.")
+        await m.reply_text("❌ Unsupported content. Allowed: text (with links) or photo only.")
         return GET_CONTENT
     await m.reply_text("🔘 Add clickable buttons? (Optional)", reply_markup=kb([[("➕ Add Buttons","adv:bf:btn:yes"),("⏩ Skip","adv:bf:btn:no")]]))
     return ASK_BUTTONS
@@ -239,7 +243,7 @@ def build_booking_conv():
         states={
             PICK_DURATION: [CallbackQueryHandler(pick_duration, pattern=r"^adv:bf:(d:\d+|custom|cancel)$")],
             CUSTOM_DURATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, custom_duration)],
-            GET_CONTENT: [MessageHandler((filters.TEXT|filters.PHOTO|filters.VIDEO|filters.Document.ALL|filters.ANIMATION) & ~filters.COMMAND, get_content)],
+            GET_CONTENT: [MessageHandler((filters.TEXT|filters.PHOTO|filters.Document.ALL|filters.VIDEO|filters.ANIMATION|filters.Sticker.ALL|filters.AUDIO|filters.VOICE|filters.VIDEO_NOTE) & ~filters.COMMAND, get_content)],
             ASK_BUTTONS: [CallbackQueryHandler(ask_buttons, pattern=r"^adv:bf:btn:(yes|no)$")],
             GET_BUTTONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_buttons)],
             CONFIRM: [CallbackQueryHandler(confirm_booking, pattern=r"^adv:bf:(confirm|cancel)$")],
