@@ -26,23 +26,23 @@ async def update_channel(channel_id, **kw):
     await db.execute(q, channel_id, *kw.values())
 
 async def list_marketplace(category_id=None, activity_tier=None, budget_max=None, min_subs=None, sort="rating", offset=0, limit=5):
-    where = ["is_listed=TRUE","is_paused=FALSE","is_suspended=FALSE","is_verified=TRUE","is_active=TRUE"]
+    where = ["c.is_listed=TRUE","c.is_paused=FALSE","c.is_suspended=FALSE","c.is_verified=TRUE","c.is_active=TRUE"]
     params = []
     if category_id:
-        params.append(category_id); where.append(f"category_id=${len(params)}")
+        params.append(category_id); where.append(f"c.category_id=${len(params)}")
     if activity_tier:
-        params.append(activity_tier); where.append(f"activity_tier=${len(params)}")
+        params.append(activity_tier); where.append(f"c.activity_tier=${len(params)}")
     if budget_max:
-        params.append(budget_max); where.append(f"final_price_credits<=${len(params)}")
+        params.append(budget_max); where.append(f"c.final_price_credits<=${len(params)}")
     if min_subs:
-        params.append(min_subs); where.append(f"subscriber_count>=${len(params)}")
+        params.append(min_subs); where.append(f"c.subscriber_count>=${len(params)}")
     order = {
-        "rating":"rating DESC, rating_count DESC",
-        "price_asc":"final_price_credits ASC",
-        "price_desc":"final_price_credits DESC",
-        "subs":"subscriber_count DESC",
-        "activity":"activity_score DESC",
-    }.get(sort, "rating DESC")
+        "rating":"c.rating DESC, c.rating_count DESC",
+        "price_asc":"c.final_price_credits ASC",
+        "price_desc":"c.final_price_credits DESC",
+        "subs":"c.subscriber_count DESC",
+        "activity":"c.activity_score DESC",
+    }.get(sort, "c.rating DESC")
     params.extend([limit, offset])
     q = f"""SELECT c.*, cat.name as category_name, cat.emoji as category_emoji
         FROM channels c LEFT JOIN channel_categories cat ON cat.category_id=c.category_id
@@ -50,17 +50,17 @@ async def list_marketplace(category_id=None, activity_tier=None, budget_max=None
     return await db.fetch(q, *params)
 
 async def count_marketplace(category_id=None, activity_tier=None, budget_max=None, min_subs=None):
-    where = ["is_listed=TRUE","is_paused=FALSE","is_suspended=FALSE","is_verified=TRUE","is_active=TRUE"]
+    where = ["c.is_listed=TRUE","c.is_paused=FALSE","c.is_suspended=FALSE","c.is_verified=TRUE","c.is_active=TRUE"]
     params = []
     if category_id:
-        params.append(category_id); where.append(f"category_id=${len(params)}")
+        params.append(category_id); where.append(f"c.category_id=${len(params)}")
     if activity_tier:
-        params.append(activity_tier); where.append(f"activity_tier=${len(params)}")
+        params.append(activity_tier); where.append(f"c.activity_tier=${len(params)}")
     if budget_max:
-        params.append(budget_max); where.append(f"final_price_credits<=${len(params)}")
+        params.append(budget_max); where.append(f"c.final_price_credits<=${len(params)}")
     if min_subs:
-        params.append(min_subs); where.append(f"subscriber_count>=${len(params)}")
-    q = f"SELECT COUNT(*) FROM channels WHERE {' AND '.join(where)}"
+        params.append(min_subs); where.append(f"c.subscriber_count>=${len(params)}")
+    q = f"SELECT COUNT(*) FROM channels c WHERE {' AND '.join(where)}"
     return await db.fetchval(q, *params) or 0
 
 async def list_all_categories():
