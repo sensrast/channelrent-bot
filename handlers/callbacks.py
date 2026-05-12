@@ -9,6 +9,7 @@ from database.queries.users import get_user
 from database.queries.channels import count_owner_channels
 
 from handlers.common.help import help_cmd, support_panel, referral_panel
+from handlers.start import force_sub_verify
 from handlers.advertiser.wallet import wallet_panel, txn_history, topup_start
 from handlers.advertiser.browse import browse_panel, filters_panel, sort_panel, category_picker, apply_filter
 from handlers.advertiser.channel_detail import channel_detail, report_start
@@ -21,12 +22,12 @@ from handlers.admin.financial import (finance_panel, topup_list, topup_view, top
 from handlers.admin.user_mgmt import users_panel, user_view, user_ban_toggle
 from handlers.admin.channel_mgmt import channels_panel, channel_view as admin_channel_view, channel_suspend
 from handlers.admin.booking_mgmt import bookings_panel
-from handlers.admin.platform_settings import settings_panel
+from handlers.admin.platform_settings import settings_panel, pricing_settings_panel, forcesub_panel
 from handlers.admin.pricing_engine import pricing_panel, pricing_recalc
 
 log = logging.getLogger(__name__)
 
-async def home_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def home_handler(update, context):
     q = update.callback_query
     try:
         await q.answer()
@@ -49,7 +50,7 @@ async def home_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await q.edit_message_text(text, parse_mode="HTML", reply_markup=markup)
     except Exception as e:
-        log.warning("home edit failed, sending new: %s", e)
+        log.warning("home edit failed: %s", e)
         try:
             await context.bot.send_message(q.message.chat_id, text, parse_mode="HTML", reply_markup=markup)
         except Exception:
@@ -81,6 +82,9 @@ ROUTES = {
     "admin:channels": channels_panel,
     "admin:bookings": bookings_panel,
     "admin:settings": settings_panel,
+    "admin:settings:price": pricing_settings_panel,
+    "admin:settings:forcesub": forcesub_panel,
+    "common:fsub:verify": force_sub_verify,
     "admin:pricing": pricing_panel,
     "admin:pricing:recalc": pricing_recalc,
 }
@@ -99,6 +103,7 @@ PREFIX_ROUTES = [
     ("owner:ch:rm:", channel_remove),
     ("owner:ch:", channel_manage),
     ("owner:bk:", view_owner_booking),
+    ("admin:users:p:", users_panel),
     ("admin:topup:ok:", topup_approve),
     ("admin:topup:no:", topup_reject),
     ("admin:topup:", topup_view),
@@ -108,7 +113,7 @@ PREFIX_ROUTES = [
     ("admin:ch:", admin_channel_view),
 ]
 
-async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def callback_router(update, context):
     q = update.callback_query
     if not q: return
     u = q.from_user
