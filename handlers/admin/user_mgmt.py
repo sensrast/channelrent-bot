@@ -35,7 +35,7 @@ async def users_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if (page+1)*per_page < total: nav.append(("Next ▶️", f"admin:users:p:{page+1}"))
     if nav: kb_rows.append(nav)
     kb_rows.append([("🔍 Search","admin:users:search")])
-    kb_rows.append([back("admin:panel")])
+    kb_rows.append(back("admin:panel"))
     await q.edit_message_text(
         f"👤 <b>User Management</b> — {total} total - Page {page+1}",
         parse_mode="HTML", reply_markup=kb(kb_rows))
@@ -58,17 +58,15 @@ async def user_search_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for r in res:
         label = f"{r['first_name'] or r['username'] or r['user_id']}" + (" 🚫" if r['is_banned'] else "")
         rows.append([(label, f"admin:user:{r['user_id']}")])
-    rows.append([back("admin:users")])
+    rows.append(back("admin:users"))
     await update.message.reply_text("🔍 Results", reply_markup=kb(rows))
     return ConversationHandler.END
 
 @superadmin_only
 async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show detail panel for a user. Works for users with OR without a username."""
     q = update.callback_query
     await q.answer()
     parts = (q.data or "").split(":")
-    # admin:user:<uid>  OR  admin:user:adj:<uid>  is handled by adjust_credits_start
     if len(parts) < 3 or not parts[2].lstrip("-").isdigit():
         await q.answer("Invalid", show_alert=True); return
     uid = int(parts[2])
@@ -86,19 +84,15 @@ async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
               f"Status: {'🚫 Banned' if u['is_banned'] else '✅ Active'}\n")
     username = u['username']
     rows = []
-    # DM button: only use t.me URL when a username exists (tg://user?id=... is not allowed
-    # as a button URL by Telegram for bots). For username-less users we keep them as
-    # callback-only actions so the rest of the buttons still work.
     if username:
-        rows.append([ ("💢 DM User", f"https://t.me/{username}", "url") ])
+        rows.append([ ("💬 DM User", f"https://t.me/{username}", "url") ])
     rows.append([("💰 Adjust Credits", f"admin:user:adj:{uid}")])
     rows.append([("🚫 Ban" if not u['is_banned'] else "✅ Unban",
                   f"admin:user:ban:{uid}:{0 if u['is_banned'] else 1}")])
     rows.append([("✉️ Send Message", f"admin:user:msg:{uid}")])
-    rows.append([back("admin:users")])
+    rows.append(back("admin:users"))
     await q.edit_message_text(detail, parse_mode="HTML", reply_markup=kb_url(rows))
 
-# Backward-compat alias (callbacks.py imports user_view; older code used user_detail).
 user_detail = user_view
 
 @superadmin_only
@@ -133,7 +127,6 @@ async def adjust_credits_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @superadmin_only
 async def user_ban_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Toggle ban via callback admin:user:ban:<uid>:<0|1>."""
     q = update.callback_query
     await q.answer()
     data = q.data.split(":")
@@ -143,7 +136,7 @@ async def user_ban_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ("🚫 User banned." if ban else "✅ User unbanned."),
         reply_markup=kb([[("🔙 Back", f"admin:user:{uid}")]]))
 
-ban_action = user_ban_toggle  # backward-compat alias
+ban_action = user_ban_toggle
 
 MSG_TEXT = 100
 
@@ -175,15 +168,6 @@ async def user_msg_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def build_user_admin_conv():
-    """Return a list of handlers for admin user-management flows.
-
-    main.py iterates the list and registers each handler.
-    Routes:
-      admin:users:search    -> ask query -> show results
-      admin:user:adj:<uid>  -> ask amount -> adjust
-      admin:user:ban:<uid>:<0|1> -> toggle ban (no conv state)
-      admin:user:msg:<uid>  -> ask text -> deliver
-    """
     search_conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(user_search_start, pattern=r"^admin:users:search$")],
         states={SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, user_search_do)]},
