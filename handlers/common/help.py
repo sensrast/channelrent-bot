@@ -2,6 +2,7 @@ import config
 from telegram import Update
 from telegram.ext import ContextTypes
 from utils.keyboards import kb, back
+from database.pool import db
 
 HELP_TEXT = (
 "❓ <b>How ChannelRent Works</b>\n\n"
@@ -41,7 +42,10 @@ async def referral_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     u = update.effective_user
-    bonus = 50
+    try:
+        bonus = int(float(await db.fetchval("SELECT value FROM platform_settings WHERE key='referral_bonus_credits'") or 50))
+    except Exception:
+        bonus = 50
     link = f"https://t.me/{config.BOT_USERNAME}?start=ref_{u.id}"
     txt = (f"🔗 <b>Refer & Earn</b>\n\n"
            f"Share your link. When a friend joins, you get <b>{bonus} credits</b>!\n\n"
