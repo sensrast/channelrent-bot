@@ -31,10 +31,6 @@ def _buttons(buttons_json):
         return None
 
 async def _safe_pin(bot: Bot, chat_id, message_id):
-    """Pin the posted ad silently and try to remove the auto-generated pin service
-    notification in the channel (best-effort). Errors are swallowed because pinning
-    is purely an aid to deletion-detection and must never break the booking flow.
-    """
     try:
         await bot.pin_chat_message(chat_id=chat_id, message_id=message_id, disable_notification=True)
     except Exception as e:
@@ -101,55 +97,49 @@ def _is_deleted_error(text):
 async def message_exists(bot: Bot, from_chat_id, message_id, probe_chat_id=None, inline_buttons_json=None):
     """Reliably determine whether the channel post is still alive.
 
-    Primary probe: editMessageReplyMarkup with the SAME markup. Telegram replies
-    with \"message is not modified\" when the message exists, and with
-    \"message to edit not found\" / MESSAGE_ID_INVALID when the owner deleted it.
-    This is non-destructive, works for messages the bot sent, and is immune to
-    channels that block forwarding/copying.
+    Probe order (strongest first):
+      1) copyMessage to superadmin DM - immediate "copy not found" when deleted.
+      2) forwardMessage to superadmin DM - similar strong signal.
+      3) editMessageReplyMarkup (same markup) - non-destructive ping.
+      4) unpin+ re-pin - last resort.
+
+    Returns True (alive) on inconclusive errors so we never refund a user
+    from a transient Telegram error. Deletion is only reported when a
+    probe returns a strong 'not found' signal.
     """
+    if probe_chat_id:
+        for api in ("copy_message", "forward_message"):
+            try:
+                fn = getattr(bot, api)
+                m = await fn(chat_id=probe_chat_id, from_chat_id=from_chat_id,
+                             message_id=message_id, disable_notification=True)
+                try: await bot.delete_message(probe_chat_id, m.message_id)
+                except Exception: pass
+                return True
+            except BadRequest as e:
+                if _is_deleted_error(str(e)):
+                    return False
+                log.debug("%s probe inconclusive: %s", api, e)
+            except Forbidden as e:
+                log.debug("%s probe forbidden (protected?): %s", api, e)
+            except TelegramError as e:
+                log.debug("%s probe telegram err: %s", api, e)
+
     markup = _buttons(inline_buttons_json)
     try:
         await bot.edit_message_reply_markup(chat_id=from_chat_id, message_id=message_id, reply_markup=markup)
         return True
     except BadRequest as e:
-        s = str(e).lower()
-        if "not modified" in s or "exactly the same" in s:
+        es = str(e).lower()
+        if "not modified" in es or "exactly the same" in es:
             return True
-        if _is_deleted_error(s):
+        if _is_deleted_error(es):
             return False
-        log.debug("edit-probe inconclusive (%s); trying forward probe", e)
+        log.debug("edit-probe inconclusive: %s", e)
     except Forbidden:
-        return True
+        pass
     except TelegramError as e:
         log.debug("edit-probe telegram err: %s", e)
-
-    if probe_chat_id:
-        try:
-            fwd = await bot.forward_message(chat_id=probe_chat_id, from_chat_id=from_chat_id,
-                                            message_id=message_id, disable_notification=True)
-            try: await bot.delete_message(probe_chat_id, fwd.message_id)
-            except Exception: pass
-            return True
-        except BadRequest as e:
-            if _is_deleted_error(str(e)):
-                return False
-        except Forbidden:
-            pass
-        except TelegramError as e:
-            log.debug("forward probe err: %s", e)
-        try:
-            cp = await bot.copy_message(chat_id=probe_chat_id, from_chat_id=from_chat_id,
-                                        message_id=message_id, disable_notification=True)
-            try: await bot.delete_message(probe_chat_id, cp.message_id)
-            except Exception: pass
-            return True
-        except BadRequest as e:
-            if _is_deleted_error(str(e)):
-                return False
-        except Forbidden:
-            return True
-        except TelegramError:
-            return True
 
     try:
         await bot.unpin_chat_message(chat_id=from_chat_id, message_id=message_id)
@@ -159,10 +149,10 @@ async def message_exists(bot: Bot, from_chat_id, message_id, probe_chat_id=None,
             pass
         return True
     except BadRequest as e:
-        s = str(e).lower()
-        if "not pinned" in s or "is not pinned" in s or "not modified" in s:
+        es = str(e).lower()
+        if "not pinned" in es or "is not pinned" in es or "not modified" in es:
             return True
-        if _is_deleted_error(s):
+        if _is_deleted_error(es):
             return False
     except Forbidden:
         pass
