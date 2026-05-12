@@ -27,30 +27,46 @@ async def add_channel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text(f"You already have {cur}/{limit} channels. Remove one first.", reply_markup=kb([back("home")]))
         return ConversationHandler.END
     context.user_data["setup"] = {}
-    await q.edit_message_text(f"➕ <b>Add New Channel</b>\n\nSend your channel @username or t.me link.\n\nFirst add @{config.BOT_USERNAME} as admin with post + delete permissions.\n\n/cancel to abort.", parse_mode="HTML")
+    await q.edit_message_text(
+        f"➕ <b>Add New Channel</b>\n\n"
+        f"<b>Public channel:</b> send the @username or t.me link.\n"
+        f"<b>Private channel:</b> forward ANY message from your channel here.\n\n"
+        f"First add @{config.BOT_USERNAME} as admin with post + delete permissions.\n\n"
+        f"/cancel to abort.", parse_mode="HTML")
     return ASK_LINK
 
 async def get_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    handle = normalize_channel_link(update.message.text)
-    context.user_data["setup"]["handle"] = "@"+handle if not handle.startswith("-") else handle
-    await update.message.reply_text("⏳ Verifying bot admin status...")
-    result = await verify_bot_is_admin(context.bot, context.user_data["setup"]["handle"])
+    msg = update.message
+    target = None
+    fwd_chat = getattr(msg, "forward_from_chat", None) or getattr(getattr(msg, "forward_origin", None), "chat", None)
+    if fwd_chat and getattr(fwd_chat, "type", "") in ("channel","supergroup"):
+        target = fwd_chat.id
+        context.user_data["setup"]["handle"] = str(fwd_chat.id)
+    elif msg.text:
+        handle = normalize_channel_link(msg.text)
+        context.user_data["setup"]["handle"] = ("@"+handle) if not handle.lstrip("-").isdigit() else handle
+        target = context.user_data["setup"]["handle"]
+    else:
+        await msg.reply_text("Send the channel @username, t.me link, OR forward a message from the channel.")
+        return ASK_LINK
+    await msg.reply_text("⏳ Verifying bot admin status...")
+    result = await verify_bot_is_admin(context.bot, target)
     if not result["ok"]:
-        await update.message.reply_text(f"❌ {result.get('reason','Not admin')}\n\nAdd @{config.BOT_USERNAME} as admin, then send the link again. Or /cancel.")
+        await msg.reply_text(f"❌ {result.get('reason','Not admin')}\n\nAdd @{config.BOT_USERNAME} as admin, then try again. Or /cancel.")
         return ASK_LINK
     chat_id = result["chat_id"]
     existing = await get_channel_by_chat(chat_id)
     if existing:
         if existing["owner_id"] == update.effective_user.id:
-            await update.message.reply_text("ℹ️ This channel is already in your account.\n/cancel to exit.")
+            await msg.reply_text("ℹ️ This channel is already in your account.\n/cancel to exit.")
         else:
-            await update.message.reply_text("⚠️ This channel is already listed by another user.")
+            await msg.reply_text("⚠️ This channel is already listed by another user.")
         return ConversationHandler.END
     context.user_data["setup"].update({
         "chat_id": chat_id, "title": result["title"], "username": result.get("username"),
         "subscribers": result["member_count"], "avg_views": int(result["member_count"]*0.3),
     })
-    return await _ask_category(update.message, context)
+    return await _ask_category(msg, context)
 
 async def _ask_category(target, context):
     cats = await list_all_categories()
@@ -199,7 +215,7 @@ def build_setup_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(add_channel_start, pattern=r"^owner:add$")],
         states={
-            ASK_LINK: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_link)],
+            ASK_LINK: [MessageHandler((filters.TEXT | filters.FORWARDED) & ~filters.COMMAND, get_link)],
             CATEGORY: [CallbackQueryHandler(pick_category, pattern=r"^owner:setup:(cat:\d+|cancel)$")],
             ALLOWED: [
                 CallbackQueryHandler(rules_choice, pattern=r"^owner:setup:rules:(default|custom)$"),
