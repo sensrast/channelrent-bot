@@ -105,11 +105,23 @@ async def topup_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 VALUES ($1,'topup_upi',0,$2,$2,$3,'UPI',$4,$5,FALSE) RETURNING transaction_id""",
                 msg.from_user.id, bal, f"UPI top-up pending ₹{amt}", file_id, amt)
     await msg.reply_text(f"✅ Payment received!\nReference: TXN-{tx_id}\nWe'll verify within 30 minutes.\n\nTap /start to return to menu.")
-    await notify_superadmin(context.bot, f"💳 <b>New Top-up</b>\nUser: {msg.from_user.full_name} (<code>{msg.from_user.id}</code>)\nAmount: ₹{amt}\nTXN: <code>{tx_id}</code>\n\nVerify in admin panel.")
-    try:
-        for sid in config.SUPERADMIN_IDS:
-            await context.bot.send_photo(sid, file_id, caption=f"Top-up screenshot TXN-{tx_id} from {msg.from_user.id}")
-    except Exception: pass
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    review_kb = InlineKeyboardMarkup([[
+        InlineKeyboardButton("✅ Approve", callback_data=f"admin:topup:ok:{tx_id}"),
+        InlineKeyboardButton("❌ Decline", callback_data=f"admin:topup:no:{tx_id}"),
+    ]])
+    caption = (f"💳 <b>New Top-up</b>\n"
+               f"User: {msg.from_user.full_name} (<code>{msg.from_user.id}</code>)\n"
+               f"Amount: ₹{amt}\nTXN: <code>{tx_id}</code>")
+    for sid in config.SUPERADMIN_IDS:
+        try:
+            await context.bot.send_photo(sid, file_id, caption=caption, parse_mode="HTML", reply_markup=review_kb)
+        except Exception:
+            try:
+                await context.bot.send_message(sid, caption + "\n\n(screenshot unavailable)",
+                    parse_mode="HTML", reply_markup=review_kb)
+            except Exception:
+                pass
     context.user_data.clear()
     return ConversationHandler.END
 
