@@ -62,7 +62,7 @@ async def _alert_force_sub_misconfig(bot, channel, err):
             (
                 "⚠️ <b>Force-Sub misconfigured</b>\n"
                 f"Channel: <code>{channel}</code>\n"
-                f"Error: <code>{err[(:200)]}</code>\n\n"
+                f"Error: <code>{err[:200]}</code>\n\n"
                 f"Please add <b>@{config.BOT_USERNAME}</b> as an admin of the "
                 f"force-sub channel with permission to view members."
             ),
