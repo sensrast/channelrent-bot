@@ -135,7 +135,7 @@ async def force_sub_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def universal_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
-        await update.message.reply_text("❌ Cancelled. Tap /start to return to main menu."
+        await update.message.reply_text("❌ Cancelled. Tap /start to return to main menu.")
     return -1
 
 async def channel_post_tracker(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -144,3 +144,4 @@ async def channel_post_tracker(update: Update, context: ContextTypes.DEFAULT_TYP
     if not cp: return
     try:
         await db.execute("UPDATE channels SET last_post_at=NOW() WHERE telegram_chat_id=$1", cp.chat.id)
+    except Exception: pass
