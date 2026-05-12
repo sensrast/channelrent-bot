@@ -34,15 +34,17 @@ async def process_expired(bot: Bot):
 
 async def check_message_existence(bot: Bot):
     target = _probe_target()
-    if not target:
-        return
     rows = await list_active_bookings()
     for b in rows:
         try:
             ch = await get_channel(b["channel_id"])
             if not ch or not b["telegram_message_id"]:
                 continue
-            present = await message_exists(bot, ch["telegram_chat_id"], b["telegram_message_id"], target)
+            present = await message_exists(
+                bot, ch["telegram_chat_id"], b["telegram_message_id"],
+                probe_chat_id=target,
+                inline_buttons_json=b.get("inline_buttons_json"),
+            )
             if present:
                 continue
             refund, owner_earn, _ = await settle_booking(b["booking_id"], "owner_deleted")
