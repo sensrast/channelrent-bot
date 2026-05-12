@@ -6,9 +6,9 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
 from utils.decorators import superadmin_only
-from utils.keyboards import kb, back
+from utils.keyboards import kb, kb_url, back
 from utils.formatters import fmt_credits
-from database.queries.users import get_user, search_users, set_banned
+from database.queries.users import get_user, search_users, set_banned, list_users
 from database.queries.credits import adjust_credits
 from database.pool import db
 
@@ -19,8 +19,25 @@ async def users_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     total = await db.fetchval("SELECT COUNT(*) FROM users") or 0
-    await q.edit_message_text(f"👥 <b>Users</b>\n\nTotal: {total}",
-        parse_mode="HTML", reply_markup=kb([[("🔍 Search User","admin:user:search")], back("admin:panel")]))
+    page = 0
+    data = q.data or ""
+    if data.startswith("admin:users:p:"):
+        try: page = int(data.split(":")[3])
+        except: page = 0
+    per_page = 10
+    rows = await list_users(limit=per_page, offset=page*per_page)
+    kb_rows = []
+    for r in rows:
+        label = f"{r['first_name'] or r['username'] or r['user_id']}" + (" 🚫" if r['is_banned'] else "")
+        kb_rows.append([(label, f"admin:user:{r['user_id']}")])
+    nav = []
+    if page > 0: nav.append(("◀️ Prev", f"admin:users:p:{page-1}"))
+    if len(rows) == per_page: nav.append(("Next ▶️", f"admin:users:p:{page+1}"))
+    if nav: kb_rows.append(nav)
+    kb_rows.append([("🔍 Search User","admin:user:search")])
+    kb_rows.append(back("admin:panel"))
+    await q.edit_message_text(f"👥 <b>Users</b>\n\nTotal: {total}\nPage {page+1}",
+        parse_mode="HTML", reply_markup=kb(kb_rows))
 
 async def user_search_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
@@ -53,12 +70,15 @@ async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
            f"Banned: {u['is_banned']}\n💰 Balance: {fmt_credits(u['credits_balance'])}\n"
            f"📈 Purchased: {fmt_credits(u['credits_total_purchased'])} • Spent: {fmt_credits(u['credits_total_spent'])}\n"
            f"⏳ Earnings pending: {fmt_credits(u['earnings_pending'])} • Paid: {fmt_credits(u['earnings_paid'])}")
-    rows = [
-        [("➕ Add Credits", f"admin:user:add:{uid}"),("➖ Remove Credits", f"admin:user:sub:{uid}")],
-        [("🚫 Ban" if not u["is_banned"] else "✅ Unban", f"admin:user:ban:{uid}")],
-        back("admin:users"),
-    ]
-    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+    rows = []
+    if u['username']:
+        rows.append([("👤 Visit Profile", f"https://t.me/{u['username']}", "url")])
+    else:
+        rows.append([("👤 Visit Profile", f"tg://user?id={u['user_id']}", "url")])
+    rows.append([("➕ Add Credits", f"admin:user:add:{uid}", "cd"),("➖ Remove Credits", f"admin:user:sub:{uid}", "cd")])
+    rows.append([("🚫 Ban" if not u["is_banned"] else "✅ Unban", f"admin:user:ban:{uid}", "cd")])
+    rows.append([("🔙 Back", "admin:users", "cd")])
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb_url(rows))
 
 async def cred_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
