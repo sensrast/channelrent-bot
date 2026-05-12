@@ -54,6 +54,20 @@ async def topup_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = [[("✅ Approve",f"admin:topup:ok:{tx_id}"),("❌ Reject",f"admin:topup:no:{tx_id}")], back("admin:topups")]
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
 
+
+async def _smart_edit(q, text, reply_markup=None, parse_mode="HTML"):
+    """Edit a callback_query message whether it's text or photo (caption)."""
+    msg = getattr(q, "message", None)
+    try:
+        if msg and (msg.photo or msg.video or msg.document or msg.animation):
+            return await q.edit_message_caption(caption=text, parse_mode=parse_mode, reply_markup=reply_markup)
+        return await q.edit_message_text(text, parse_mode=parse_mode, reply_markup=reply_markup)
+    except Exception:
+        try:
+            return await q.edit_message_reply_markup(reply_markup=reply_markup)
+        except Exception:
+            return None
+
 @superadmin_only
 async def topup_approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
@@ -61,7 +75,7 @@ async def topup_approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tx_id = int(q.data.split(":")[3])
     t = await get_transaction(tx_id)
     if not t or t["payment_verified"]:
-        await q.edit_message_text("Already processed.", reply_markup=kb([back("admin:topups")]))
+        await _smart_edit(q, "Already processed.", reply_markup=kb([back("admin:topups")]))
         return
     amt = t["payment_amount_inr"]
     async with db.acquire() as conn:
@@ -69,7 +83,7 @@ async def topup_approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await adjust_credits(conn, t["user_id"], amt, "topup_manual",
                 description=f"Approved TXN-{tx_id}", created_by=q.from_user.id)
             await mark_payment_verified(tx_id, q.from_user.id)
-    await q.edit_message_text(f"✅ Approved TXN-{tx_id}: +{amt} cr.", reply_markup=kb([back("admin:topups")]))
+    await _smart_edit(q, f"✅ Approved TXN-{tx_id}: +{amt} cr.", reply_markup=kb([back("admin:topups")]))
     await notify(context.bot, t["user_id"], "topup_done",
         f"✅ <b>Top-up successful!</b>\n+{amt} credits added.\nTXN-{tx_id}")
 
@@ -81,7 +95,7 @@ async def topup_reject(update: Update, context: ContextTypes.DEFAULT_TYPE):
     t = await get_transaction(tx_id)
     if not t or t["payment_verified"]: return
     await db.execute("UPDATE credit_transactions SET payment_verified=TRUE, description=COALESCE(description,'')||' [REJECTED]' WHERE transaction_id=$1", tx_id)
-    await q.edit_message_text(f"❌ Rejected TXN-{tx_id}.", reply_markup=kb([back("admin:topups")]))
+    await _smart_edit(q, f"❌ Rejected TXN-{tx_id}.", reply_markup=kb([back("admin:topups")]))
     await notify(context.bot, t["user_id"], "topup_rejected",
         f"❌ Top-up TXN-{tx_id} rejected. Contact @{config.SUPPORT_USERNAME} if this is a mistake.")
 
