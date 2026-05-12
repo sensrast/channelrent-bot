@@ -32,33 +32,38 @@ async def users_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         kb_rows.append([(label, f"admin:user:{r['user_id']}")])
     nav = []
     if page > 0: nav.append(("◀️ Prev", f"admin:users:p:{page-1}"))
-    if len(rows) == per_page: nav.append(("Next ▶️", f"admin:users:p:{page+1}"))
+    if (page+1)*per_page < total: nav.append(("Next ▶️", f"admin:users:p:{page+1}"))
     if nav: kb_rows.append(nav)
-    kb_rows.append([("🔍 Search User","admin:user:search")])
-    kb_rows.append(back("admin:panel"))
-    await q.edit_message_text(f"👥 <b>Users</b>\n\nTotal: {total}\nPage {page+1}",
+    kb_rows.append([("🔍 Search","admin:users:search")])
+    kb_rows.append([back("admin:panel")])
+    await q.edit_message_text(
+        f"👤 <b>User Management</b> — {total} total - Page {page+1}",
         parse_mode="HTML", reply_markup=kb(kb_rows))
 
+@superadmin_only
 async def user_search_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
-    if q.from_user.id not in config.SUPERADMIN_IDS: return ConversationHandler.END
-    await q.edit_message_text("Enter user ID or username:")
+    await q.edit_message_text("Send username, user ID or name to search:", reply_markup=kb([back("admin:users")]))
     return SEARCH
 
+@superadmin_only
 async def user_search_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in config.SUPERADMIN_IDS: return ConversationHandler.END
-    rows = await search_users(update.message.text.strip(), limit=5)
-    if not rows:
-        await update.message.reply_text("No users found.", reply_markup=kb([back("admin:users")]))
+    q = update.message.text.strip()
+    res = await search_users(q, 20)
+    if not res:
+        await update.message.reply_text("No users found.")
         return ConversationHandler.END
-    kb_rows = [[(f"{r['first_name'] or r['user_id']}", f"admin:user:{r['user_id']}")] for r in rows]
-    kb_rows.append(back("admin:users"))
-    await update.message.reply_text("Pick:", reply_markup=kb(kb_rows))
+    rows = []
+    for r in res:
+        label = f"{r['first_name'] or r['username'] or r['user_id']}" + (" 🚫" if r['is_banned'] else "")
+        rows.append([(label, f"admin:user:{r['user_id']}")])
+    rows.append([back("admin:users")])
+    await update.message.reply_text("🔍 Results", reply_markup=kb(rows))
     return ConversationHandler.END
 
 @superadmin_only
-async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def user_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     uid = int(q.data.split(":")[2])
@@ -66,76 +71,57 @@ async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not u:
         await q.edit_message_text("Not found.", reply_markup=kb([back("admin:users")]))
         return
-    txt = (f"👤 <b>{u['first_name'] or '-'} @{u['username'] or '-'}</b>\nID: <code>{u['user_id']}</code>\n"
-           f"Banned: {u['is_banned']}\n💰 Balance: {fmt_credits(u['credits_balance'])}\n"
-           f"📈 Purchased: {fmt_credits(u['credits_total_purchased'])} • Spent: {fmt_credits(u['credits_total_spent'])}\n"
-           f"⏳ Earnings pending: {fmt_credits(u['earnings_pending'])} • Paid: {fmt_credits(u['earnings_paid'])}")
-    rows = []
-    if u['username']:
-        rows.append([("👤 Visit Profile", f"https://t.me/{u['username']}", "url")])
+    detail = (f"👤 <b>{u['first_name'] or '-'}}</b>\n"
+              f"ID: <code>{u['user_id']}</code>\n"
+              f"Username: @{u['username'] or '-'}\n"
+              f"Credits: {fmt_credits(u['credits_balance'])}\n"
+              f"Total purchased: {fmt_credits(u['credits_total_purchased'])}\n"
+              f"Referred by: {u['referred_by'] or '-'}\n"
+              f"Status: {'🚫 Banned' if u['is_banned'] else '✅ Active'}\n")
+    username = u['username']
+    if username:
+        rows = [[ ("💢 DM User", f"https://t.me/{username}", "url") ]]
     else:
-        rows.append([("👤 Visit Profile", f"tg://user?id={u['user_id']}", "url")])
-    rows.append([("➕ Add Credits", f"admin:user:add:{uid}", "cd"),("➖ Remove Credits", f"admin:user:sub:{uid}", "cd")])
-    rows.append([("🚫 Ban" if not u["is_banned"] else "✅ Unban", f"admin:user:ban:{uid}", "cd")])
-    rows.append([("🔙 Back", "admin:users", "cd")])
-    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb_url(rows))
-
-async def cred_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    await q.answer()
-    if q.from_user.id not in config.SUPERADMIN_IDS: return ConversationHandler.END
-    parts = q.data.split(":")
-    action, uid = parts[2], int(parts[3])
-    context.user_data["cred"] = {"action": action, "uid": uid}
-    await q.edit_message_text(f"Enter credits to {'ADD' if action=='add' else 'REMOVE'}:")
-    return CRED_AMT
-
-async def cred_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in config.SUPERADMIN_IDS: return ConversationHandler.END
-    d = context.user_data.pop("cred", None)
-    if not d: return ConversationHandler.END
-    try:
-        amt = int(update.message.text.strip())
-    except Exception:
-        await update.message.reply_text("Invalid number.")
-        return ConversationHandler.END
-    delta = amt if d["action"] == "add" else -amt
-    try:
-        async with db.acquire() as conn:
-            async with conn.transaction():
-                await adjust_credits(conn, d["uid"], delta,
-                    "topup_manual" if delta>0 else "penalty",
-                    description=f"Admin {d['action']} by {update.effective_user.id}",
-                    created_by=update.effective_user.id)
-    except ValueError as e:
-        await update.message.reply_text(f"❌ {e}")
-        return ConversationHandler.END
-    await update.message.reply_text(f"✅ {('Added' if delta>0 else 'Removed')} {abs(delta)} cr.")
-    return ConversationHandler.END
+        rows = [[ ("💢 DM User (open)", f"tg://user?id={uid}", "url") ]]
+    rows += [
+        [("💰 Adjust Credits", f"admin:user:adj:{uid}")],
+        [("🚫 Ban" if not u['is_banned'] else "✅ Unban", f"admin:user:ban:{uid}:{0 if u['is_banned'] else 1}")],
+        [back("admin:users")],
+    ]
+    from utils.keyboards import kb_url
+    await q.edit_message_text(detail, parse_mode="HTML", reply_markup=kb_url(rows))
 
 @superadmin_only
-async def user_ban_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def adjust_credits_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     uid = int(q.data.split(":")[3])
-    u = await get_user(uid)
-    if not u: return
-    await set_banned(uid, not u["is_banned"], "Banned by admin" if not u["is_banned"] else None)
-    q.data = f"admin:user:{uid}"
-    await user_view(update, context)
+    context.user_data['admin_adj_uid'] = uid
+    await q.edit_message_text(f"Amount for {uid} (positive add, negative deduct):", reply_markup=kb([back("admin:user")]))
+    return CRED_AMT
 
-def build_user_admin_conv():
-    return ConversationHandler(
-        entry_points=[
-            CallbackQueryHandler(user_search_start, pattern=r"^admin:user:search$"),
-            CallbackQueryHandler(cred_start, pattern=r"^admin:user:(add|sub):\d+$"),
-        ],
-        states={
-            SEARCH:[MessageHandler(filters.TEXT & ~filters.COMMAND, user_search_do)],
-            CRED_AMT:[MessageHandler(filters.TEXT & ~filters.COMMAND, cred_finish)],
-        },
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
-        conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
-        per_user=True, per_chat=True, per_message=False,
-        allow_reentry=True,
-    )
+@superadmin_only
+async def adjust_credits_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if 'admin_adj_uid' not in context.user_data:
+        await msg.reply_text("Session expired."); return ConversationHandler.END
+    uid = context.user_data.pop('admin_adj_uid')
+    try:
+        amt = int(msg.text.strip())
+    except:
+        await msg.reply_text("Invalid number.")
+        return ConversationHandler.END
+    async with db.acquire() as conn:
+        async with conn.transaction():
+            await adjust_credits(conn, uid, amt, 'admin_adjustment', description='Manual admin adjustment')
+    await msg.reply_text(f"Adjusted {uid} by {amt}.")
+    return ConversationHandler.END
+
+@superadmin_only
+async def ban_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    data = q.data.split(":")
+    uid = int(data[2]); ban = data[3] == "1"
+    await set_banned(uid, ban)
+    await q.edit_message_text("🚯 Updated.", reply_markup=kb([back("admin:user")]))
