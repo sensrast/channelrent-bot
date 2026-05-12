@@ -17,7 +17,7 @@ async def platform_overview():
                 pending_topups=pending_topups, pending_topup_inr=pending_topup_inr)
 
 async def top_channels(limit=10):
-    return await db.fetch("SELECT title, total_bookings FROM channels ORDER BY total_bookings DESC LIMIT $1", limit)
+    return await db.fetch("SELECT channel_id, title, username, invite_link, telegram_chat_id, total_bookings FROM channels ORDER BY total_bookings DESC LIMIT $1", limit)
 
 async def bookings_last_7_days():
     return await db.fetch("""
