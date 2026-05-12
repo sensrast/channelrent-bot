@@ -25,6 +25,7 @@ def main_menu(has_channels: bool, is_admin: bool):
             [("➕ Add Channel","owner:add"),("📋 Incoming Bookings","owner:bookings")],
             [("🔍 Browse Channels","adv:browse"),("📋 My Bookings","adv:bookings")],
             [("💰 My Wallet","adv:wallet"),("➕ Top Up","adv:topup")],
+            [("💸 Withdraw","owner:payout")],
             [("🔗 Referral","common:ref"),("❓ Help","common:help")],
             [("🎫 Support","common:support")],
         ]
@@ -32,6 +33,7 @@ def main_menu(has_channels: bool, is_admin: bool):
         rows = [
             [("🔍 Browse Channels","adv:browse"),("📋 My Bookings","adv:bookings")],
             [("💰 My Wallet","adv:wallet"),("➕ Top Up","adv:topup")],
+            [("💸 Withdraw","owner:payout")],
             [("➕ List My Channel","owner:add")],
             [("🔗 Referral","common:ref"),("❓ How It Works","common:help")],
             [("🎫 Support","common:support")],
