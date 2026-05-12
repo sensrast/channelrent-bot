@@ -30,7 +30,7 @@ def _buttons(buttons_json):
     except Exception:
         return None
 
-async def post_to_channel(bot, booking, watermark=True):
+async def post_to_channel(bot: Bot, booking, watermark=True):
     chat_id = booking["telegram_chat_id"]
     ct = booking["content_type"]
     wm = await _watermark() if watermark else ""
@@ -47,7 +47,7 @@ async def post_to_channel(bot, booking, watermark=True):
         raise ValueError(f"Unsupported content_type {ct}")
     return msg.message_id
 
-async def delete_from_channel(bot, chat_id, message_id):
+async def delete_from_channel(bot: Bot, chat_id, message_id):
     try:
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
         return True
@@ -58,11 +58,37 @@ async def delete_from_channel(bot, chat_id, message_id):
     except TelegramError as e:
         log.warning("delete error: %s", e); return False
 
-DELETED_HINTS = ("not found", "message to forward", "message_id_invalid", "message to copy", "message to delete not found", "message id invalid")
+DELETED_HINTS = ("not found", "message to forward", "message_id_invalid",
+                 "message to copy", "message identifier is not specified",
+                 "message to be forwarded", "message can't be forwarded",
+                 "message_to_forward_not_found", "message to delete not found",
+                 "message id invalid")
 
-async def message_exists(bot, from_chat_id, message_id, target_chat_id):
+async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
+    """Probe whether the original channel message still exists.
+    Strategy 1 (preferred): unpin_chat_message — non-destructive no-op if message not pinned;
+      raises if message was deleted. Works even with protect_content enabled.
+    Strategy 2 (fallback): copy_message + delete the copy.
+    """
     try:
-        cp = await bot.copy_message(chat_id=target_chat_id, from_chat_id=from_chat_id, message_id=message_id, disable_notification=True)
+        await bot.unpin_chat_message(chat_id=from_chat_id, message_id=message_id)
+        return True
+    except BadRequest as e:
+        s = str(e).lower()
+        if "not pinned" in s or "is not pinned" in s or "not modified" in s:
+            return True
+        for h in DELETED_HINTS:
+            if h in s:
+                return False
+        if "message to unpin" in s or "message_id_invalid" in s or "message not found" in s or "message to edit" in s:
+            return False
+    except Forbidden:
+        return True
+    except TelegramError as e:
+        log.debug("unpin probe err: %s", e)
+    try:
+        cp = await bot.copy_message(chat_id=target_chat_id, from_chat_id=from_chat_id,
+                                    message_id=message_id, disable_notification=True)
         try:
             await bot.delete_message(target_chat_id, cp.message_id)
         except Exception:
@@ -73,7 +99,7 @@ async def message_exists(bot, from_chat_id, message_id, target_chat_id):
         for h in DELETED_HINTS:
             if h in s:
                 return False
-        if "message" in s and ("delete" in s or "not" in s):
+        if "message" in s and ("delete" in s or "not" in s or "invalid" in s):
             return False
         return True
     except Forbidden:
