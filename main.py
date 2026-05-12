@@ -16,6 +16,7 @@ from handlers.common.help import help_cmd
 from handlers.callbacks import callback_router
 from handlers.advertiser.wallet import build_topup_conv
 from handlers.advertiser.booking_flow import build_booking_conv
+from handlers.advertiser.channel_detail import build_report_conv
 from handlers.owner.channel_setup import build_setup_conv
 from handlers.owner.booking_mgmt import build_reject_conv, approve_booking
 from handlers.owner.earnings import build_payout_conv
@@ -72,6 +73,7 @@ def build_app_obj():
 
     app.add_handler(build_setup_conv())
     app.add_handler(build_booking_conv())
+    app.add_handler(build_report_conv())
     app.add_handler(build_topup_conv())
     app.add_handler(build_payout_conv())
     app.add_handler(build_reject_conv())
