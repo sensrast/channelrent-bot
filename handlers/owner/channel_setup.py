@@ -62,6 +62,9 @@ async def get_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await msg.reply_text("⚠️ This channel is already listed by another user.")
         return ConversationHandler.END
+    if (result.get("member_count") or 0) < 100:
+        await msg.reply_text("❌ This channel has fewer than 100 subscribers. Minimum 100 required to list.")
+        return ConversationHandler.END
     context.user_data["setup"].update({
         "chat_id": chat_id, "title": result["title"], "username": result.get("username"),
         "subscribers": result["member_count"], "avg_views": int(result["member_count"]*0.3),
