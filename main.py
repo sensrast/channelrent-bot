@@ -78,7 +78,8 @@ def build_app_obj():
     app.add_handler(build_payout_conv())
     app.add_handler(build_reject_conv())
     app.add_handler(build_payout_admin_conv())
-    app.add_handler(build_user_admin_conv())
+    for h in build_user_admin_conv():
+        app.add_handler(h)
     app.add_handler(build_settings_conv())
     app.add_handler(build_bcast_conv())
     app.add_handler(build_pricing_conv())
