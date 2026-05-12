@@ -34,10 +34,10 @@ def short(text, n=120):
     return text if len(text) <= n else text[:n-1] + "…"
 
 def activity_emoji(tier):
-    return {"high":"🔥","medium":"⚡","low":"🌱","premium":"💍"}.get(tier or "low","⚡")
+    return {"high":"🔥","medium":"⚡","low":"🌱","premium":"💎"}.get(tier or "low","⚡")
 
 def status_emoji(status):
     return {
-        "pending_approval":"⏳","approved":"✅","active":"🟡",
-        "completed":"✔️","completed_early":"⚠️","cancelled":"❌","rejected":"🚚",
+        "pending_approval":"⏳","approved":"✅","active":"🟢",
+        "completed":"✔️","completed_early":"⚠️","cancelled":"❌","rejected":"🚫",
     }.get(status, "•")
