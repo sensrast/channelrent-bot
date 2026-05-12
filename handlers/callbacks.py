@@ -11,7 +11,7 @@ from database.queries.channels import count_owner_channels
 from handlers.common.help import help_cmd, support_panel, referral_panel
 from handlers.advertiser.wallet import wallet_panel, txn_history, topup_start
 from handlers.advertiser.browse import browse_panel, filters_panel, sort_panel, category_picker, apply_filter
-from handlers.advertiser.channel_detail import channel_detail
+from handlers.advertiser.channel_detail import channel_detail, report_start
 from handlers.advertiser.my_bookings import my_bookings, view_booking, delete_early_confirm, delete_early_go, cancel_pending
 from handlers.owner.dashboard import (my_channels, channel_manage, channel_pause, channel_refresh, channel_remove,
                                       earnings_panel, incoming_bookings, view_owner_booking)
@@ -28,26 +28,39 @@ log = logging.getLogger(__name__)
 
 async def home_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
-    await q.answer()
+    try:
+        await q.answer()
+    except Exception:
+        pass
     u = q.from_user
-    user = await get_user(u.id)
-    n = await count_owner_channels(u.id)
+    try:
+        user = await get_user(u.id)
+        n = await count_owner_channels(u.id)
+    except Exception:
+        log.exception("home_handler load failed")
+        user, n = None, 0
     bal = user["credits_balance"] if user else 0
     earn = user["earnings_pending"] if user else 0
     text = (f"🏪 <b>{config.PLATFORM_NAME}</b>\n\n"
             f"💰 Credits: <b>{fmt_credits(bal)}</b>"
             + (f" | 📈 Earnings: <b>{fmt_credits(earn)}</b>" if n else "")
             + "\n\nChoose an option:")
-    await q.edit_message_text(text, parse_mode="HTML", reply_markup=main_menu(n>0, u.id in config.SUPERADMIN_IDS))
+    markup = main_menu(n>0, u.id in config.SUPERADMIN_IDS)
+    try:
+        await q.edit_message_text(text, parse_mode="HTML", reply_markup=markup)
+    except Exception as e:
+        log.warning("home edit failed, sending new: %s", e)
+        try:
+            await context.bot.send_message(q.message.chat_id, text, parse_mode="HTML", reply_markup=markup)
+        except Exception:
+            pass
 
 ROUTES = {
     "home": home_handler,
     "noop": (lambda u,c: u.callback_query.answer()),
-    # common
     "common:help": help_cmd,
     "common:support": support_panel,
     "common:ref": referral_panel,
-    # advertiser
     "adv:wallet": wallet_panel,
     "adv:txns": txn_history,
     "adv:topup": topup_start,
@@ -56,11 +69,9 @@ ROUTES = {
     "adv:sort": sort_panel,
     "adv:f:cat": category_picker,
     "adv:bookings": my_bookings,
-    # owner
     "owner:channels": my_channels,
     "owner:earnings": earnings_panel,
     "owner:bookings": incoming_bookings,
-    # admin
     "admin:panel": admin_panel,
     "admin:analytics": analytics_panel,
     "admin:finance": finance_panel,
@@ -78,6 +89,7 @@ PREFIX_ROUTES = [
     ("adv:browse:p:", browse_panel),
     ("adv:f:", apply_filter),
     ("adv:ch:", channel_detail),
+    ("adv:report:", report_start),
     ("adv:bk:del:", delete_early_confirm),
     ("adv:bk:delgo:", delete_early_go),
     ("adv:bk:cancel:", cancel_pending),
