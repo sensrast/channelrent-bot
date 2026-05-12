@@ -66,10 +66,28 @@ DELETED_HINTS = ("not found", "message to forward", "message_id_invalid",
 
 async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
     """Probe whether the original channel message still exists.
-    Strategy 1 (preferred): unpin_chat_message — non-destructive no-op if message not pinned;
-      raises if message was deleted. Works even with protect_content enabled.
-    Strategy 2 (fallback): copy_message + delete the copy.
+    Strategy 1 (preferred): editMessageReplyMarkup with same markup — the bot owns this
+      message (it posted the ad), so editing is reliable. If deleted, Telegram returns
+      \"message to edit not found\" / \"MESSAGE_ID_INVALID\".
+    Strategy 2 (fallback): unpin_chat_message — non-destructive no-op.
+    Strategy 3 (last resort): copy_message + delete the copy.
     """
+    try:
+        await bot.edit_message_reply_markup(chat_id=from_chat_id, message_id=message_id, reply_markup=None)
+        return True
+    except BadRequest as e:
+        s = str(e).lower()
+        if "not modified" in s or "exactly the same" in s:
+            return True
+        for h in DELETED_HINTS:
+            if h in s:
+                return False
+        if "message to edit" in s or "message_id_invalid" in s or "message not found" in s or "message can't be edited" in s:
+            return False
+    except Forbidden:
+        pass
+    except TelegramError as e:
+        log.debug("edit probe err: %s", e)
     try:
         await bot.unpin_chat_message(chat_id=from_chat_id, message_id=message_id)
         return True
@@ -86,6 +104,8 @@ async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
         pass
     except TelegramError as e:
         log.debug("unpin probe err: %s", e)
+    if not target_chat_id:
+        return True
     try:
         cp = await bot.copy_message(chat_id=target_chat_id, from_chat_id=from_chat_id,
                                     message_id=message_id, disable_notification=True)
