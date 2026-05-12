@@ -73,6 +73,7 @@ async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
         s = str(e).lower()
         if "not found" in s or "message to forward" in s or "message_id_invalid" in s:
             return False
+        log.debug("forward probe ambiguous: %s", e)
         return True
     except Forbidden:
         return True
