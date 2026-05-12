@@ -7,7 +7,7 @@ async def adjust_credits(conn, user_id, delta, tx_type, description=None, bookin
         raise ValueError("user not found")
     bal = Decimal(str(row["credits_balance"] or 0))
     delta = Decimal(str(delta))
-    new_bal = (bal + delta).quantize(Decimal("0.01"))
+    new_bal = (bal + delta).quantize(Decimal("0.0001"))
     if new_bal < 0:
         raise ValueError("insufficient credits")
     await conn.execute("UPDATE users SET credits_balance=$2 WHERE user_id=$1", user_id, new_bal)
