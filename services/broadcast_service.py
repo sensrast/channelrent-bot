@@ -66,28 +66,53 @@ DELETED_HINTS = ("not found", "message to forward", "message_id_invalid",
 
 async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
     """Probe whether the original channel message still exists.
-    Strategy 1 (preferred): editMessageReplyMarkup with same markup — the bot owns this
-      message (it posted the ad), so editing is reliable. If deleted, Telegram returns
-      \"message to edit not found\" / \"MESSAGE_ID_INVALID\".
-    Strategy 2 (fallback): unpin_chat_message — non-destructive no-op.
-    Strategy 3 (last resort): copy_message + delete the copy.
+
+    Primary: forward_message to admin probe chat (silently) then delete the copy.
+    Telegram returns "message to forward not found" / MESSAGE_ID_INVALID when the
+    original message was deleted by the channel owner. This is non-destructive
+    to the live ad (no buttons removed, no edits to user-visible content).
+
+    Fallback: copy_message + delete.
     """
-    try:
-        await bot.edit_message_reply_markup(chat_id=from_chat_id, message_id=message_id, reply_markup=None)
-        return True
-    except BadRequest as e:
-        s = str(e).lower()
-        if "not modified" in s or "exactly the same" in s:
+    if target_chat_id:
+        try:
+            fwd = await bot.forward_message(chat_id=target_chat_id, from_chat_id=from_chat_id,
+                                            message_id=message_id, disable_notification=True)
+            try:
+                await bot.delete_message(target_chat_id, fwd.message_id)
+            except Exception:
+                pass
             return True
-        for h in DELETED_HINTS:
-            if h in s:
+        except BadRequest as e:
+            s = str(e).lower()
+            for h in DELETED_HINTS:
+                if h in s:
+                    return False
+            if "message to forward" in s or "message_id_invalid" in s or "message not found" in s or "message to copy" in s:
                 return False
-        if "message to edit" in s or "message_id_invalid" in s or "message not found" in s or "message can't be edited" in s:
-            return False
-    except Forbidden:
-        pass
-    except TelegramError as e:
-        log.debug("edit probe err: %s", e)
+        except Forbidden:
+            pass
+        except TelegramError as e:
+            log.debug("forward probe err: %s", e)
+        try:
+            cp = await bot.copy_message(chat_id=target_chat_id, from_chat_id=from_chat_id,
+                                        message_id=message_id, disable_notification=True)
+            try:
+                await bot.delete_message(target_chat_id, cp.message_id)
+            except Exception:
+                pass
+            return True
+        except BadRequest as e:
+            s = str(e).lower()
+            for h in DELETED_HINTS:
+                if h in s:
+                    return False
+            if "message to copy" in s or "message_id_invalid" in s or "message not found" in s:
+                return False
+        except Forbidden:
+            return True
+        except TelegramError:
+            return True
     try:
         await bot.unpin_chat_message(chat_id=from_chat_id, message_id=message_id)
         return True
@@ -98,31 +123,10 @@ async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
         for h in DELETED_HINTS:
             if h in s:
                 return False
-        if "message to unpin" in s or "message_id_invalid" in s or "message not found" in s or "message to edit" in s:
+        if "message to unpin" in s or "message_id_invalid" in s or "message not found" in s:
             return False
     except Forbidden:
         pass
     except TelegramError as e:
         log.debug("unpin probe err: %s", e)
-    if not target_chat_id:
-        return True
-    try:
-        cp = await bot.copy_message(chat_id=target_chat_id, from_chat_id=from_chat_id,
-                                    message_id=message_id, disable_notification=True)
-        try:
-            await bot.delete_message(target_chat_id, cp.message_id)
-        except Exception:
-            pass
-        return True
-    except BadRequest as e:
-        s = str(e).lower()
-        for h in DELETED_HINTS:
-            if h in s:
-                return False
-        if "message" in s and ("delete" in s or "not" in s or "invalid" in s):
-            return False
-        return True
-    except Forbidden:
-        return True
-    except TelegramError:
-        return True
+    return True
