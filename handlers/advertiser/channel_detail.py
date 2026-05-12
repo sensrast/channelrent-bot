@@ -1,7 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
-from utils.keyboards import kb, back
+from utils.keyboards import kb, kb_url, back
+from utils.channel_links import get_channel_link
 from utils.formatters import fmt_credits, activity_emoji
 from database.queries.channels import get_channel
 from database.pool import db
@@ -41,12 +42,15 @@ async def channel_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
            f"✅ {c['allowed_content']}\n"
            f"❌ {c['forbidden_content']}\n\n"
            f"─── Recent Reviews ───{rtxt}")
+    link = await get_channel_link(c, bot=context.bot)
     rows = [
-        [("📋 Book This Channel", f"adv:book:{ch_id}")],
-        [("🚩 Report Channel", f"adv:report:{ch_id}")],
-        back("adv:browse"),
+        [("📋 Book This Channel", f"adv:book:{ch_id}", "cd")],
+        [("🚩 Report Channel", f"adv:report:{ch_id}", "cd")],
     ]
-    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+    if link:
+        rows.insert(0, [("🔗 Visit Channel", link, "url")])
+    rows.append([("🔙 Back", "adv:browse", "cd")])
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb_url(rows))
 
 async def report_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
