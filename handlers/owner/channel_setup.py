@@ -58,7 +58,7 @@ async def get_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     existing = await get_channel_by_chat(chat_id)
     if existing:
         same_owner = existing["owner_id"] == update.effective_user.id
-        is_active = existing["is_active"] if not isinstance(existing, dict) else existing.get("is_active")
+        is_active = existing["is_active"]
         if same_owner:
             if not is_active:
                 await update_channel(existing["channel_id"],
