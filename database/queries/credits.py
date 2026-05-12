@@ -1,7 +1,7 @@
 from database.pool import db
-from decimal import Decimal
 
 async def adjust_credits(conn, user_id, delta, tx_type, description=None, booking_id=None, created_by=None, payment_method=None, payment_reference=None, payment_screenshot_file_id=None, payment_amount_inr=None, payment_verified=False):
+    from decimal import Decimal
     row = await conn.fetchrow("SELECT credits_balance FROM users WHERE user_id=$1 FOR UPDATE", user_id)
     if not row:
         raise ValueError("user not found")

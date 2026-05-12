@@ -14,6 +14,7 @@ BOOL_KEYS = {"marketplace_enabled","maintenance_mode","watermark_enabled"}
 def _is_truthy(v):
     return str(v).strip().lower() in ("1","true","yes","on","t","y")
 
+
 EDIT = 0
 
 KEYS = [
@@ -55,6 +56,7 @@ async def toggle_setting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new_val = "false" if _is_truthy(cur) else "true"
     await db.execute("UPDATE platform_settings SET value=$2, updated_at=NOW(), updated_by=$3 WHERE key=$1", key, new_val, q.from_user.id)
     await settings_panel(update, context)
+
 
 async def set_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
