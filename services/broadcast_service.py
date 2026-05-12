@@ -83,7 +83,7 @@ async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
         if "message to unpin" in s or "message_id_invalid" in s or "message not found" in s or "message to edit" in s:
             return False
     except Forbidden:
-        return True
+        pass
     except TelegramError as e:
         log.debug("unpin probe err: %s", e)
     try:
