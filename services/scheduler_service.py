@@ -63,8 +63,8 @@ def start(bot):
     global scheduler
     scheduler = AsyncIOScheduler(timezone="UTC")
 
-    scheduler.add_job(process_expired, IntervalTrigger(seconds=config.DELETION_CHECK_INTERVAL_SECONDS), args=[bot], id="deletion", max_instances=1)
-    scheduler.add_job(check_message_existence, IntervalTrigger(seconds=30), args=[bot], id="exists", max_instances=1)
+    scheduler.add_job(process_expired, IntervalTrigger(seconds=min(30, config.DELETION_CHECK_INTERVAL_SECONDS)), args=[bot], id="deletion", max_instances=1)
+    scheduler.add_job(check_message_existence, IntervalTrigger(seconds=10), args=[bot], id="exists", max_instances=1)
     scheduler.add_job(_pending_reminder, IntervalTrigger(hours=2), args=[bot], id="pending_reminder", max_instances=1)
     scheduler.add_job(_low_credits_alert, IntervalTrigger(hours=6), args=[bot], id="low_credits", max_instances=1)
     scheduler.add_job(_cleanup_inactive_channels, IntervalTrigger(hours=12), args=[bot], id="inactive_cleanup", max_instances=1)
