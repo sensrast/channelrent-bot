@@ -1,23 +1,35 @@
 import logging
 log = logging.getLogger(__name__)
 
-async def get_channel_display_link(bot, row):
+
+def _get(row, key, default=None):
+    if row is None:
+        return default
+    try:
+        return row[key] if key in row else default
+    except (KeyError, TypeError):
+        pass
+    try:
+        return getattr(row, key, default)
+    except Exception:
+        return default
+
+
+async def get_channel_link(row, bot=None):
     """Return a reachable link for a channel row.
 
-    The row can come from either channels or a JOIN result. Acceptable fields:
-    - channel_username (from channels)
-    - telegram_chat_id
-    - invite_link
+    Accepts asyncpg Record, dict, or object. Resolves public username, stored
+    invite link, or exports a fresh invite link for private channels.
     """
     if not row:
         return None
-    username = row.get("channel_username") if isinstance(row, dict) else getattr(row, "channel_username", None)
+    username = _get(row, "channel_username") or _get(row, "username")
     if username:
-        return f"https://t.me/{username.lstrip('@')}"
-    invite = row.get("invite_link") if isinstance(row, dict) else getattr(row, "invite_link", None)
-    chat_id = row.get("telegram_chat_id") if isinstance(row, dict) else getattr(row, "telegram_chat_id", None)
+        return f"https://t.me/{str(username).lstrip('@')}"
+    invite = _get(row, "invite_link")
     if invite:
         return invite
+    chat_id = _get(row, "telegram_chat_id") or _get(row, "chat_id")
     if chat_id and bot:
         try:
             chat = await bot.get_chat(chat_id)
@@ -31,7 +43,7 @@ async def get_channel_display_link(bot, row):
                 if inv:
                     return inv
             except Exception as e:
-                log.debug("export_chat_invite_link failed: %s", e)
+                log.debug("export_chat_invite_link failed for %s: %s", chat_id, e)
         except Exception as e:
             log.debug("get_chat failed for %s: %s", chat_id, e)
     if chat_id:
@@ -43,3 +55,7 @@ async def get_channel_display_link(bot, row):
         except Exception:
             pass
     return None
+
+
+# Backward-compatible alias (older code used get_channel_display_link).
+get_channel_display_link = get_channel_link
