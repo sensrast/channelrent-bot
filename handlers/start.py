@@ -1,6 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from telegram.error import Forbidden, BadRequest, TelegramError
 import config
 from utils.decorators import track_user, ban_check
 from utils.keyboards import main_menu, kb
@@ -9,8 +10,12 @@ from database.pool import db
 from database.queries.users import get_user, set_referrer
 from database.queries.credits import adjust_credits
 from database.queries.channels import count_owner_channels
+from services.notification_service import notify_superadmin
 
 log = logging.getLogger(__name__)
+
+# Notify superadmin only once per process when force-sub is misconfigured.
+_FORCE_SUB_ALERTED = set()
 
 async def _maintenance(update, user_id):
     val = await db.fetchval("SELECT value FROM platform_settings WHERE key='maintenance_mode'")
@@ -22,21 +27,57 @@ async def _maintenance(update, user_id):
     return False
 
 async def _force_sub_check(bot, user_id):
-    """Returns (enabled, channel, is_member). channel is @username or chat_id string."""
+    """Returns (enabled, channel, is_member, bot_ok).
+
+    bot_ok=False means the bot itself is NOT admin of the force-sub channel and
+    therefore cannot read its members. In that case we treat the user as joined
+    so the gate cannot lock users out, and we ping the super-admin to fix it.
+    """
     en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_enabled'") or "false").lower() == "true"
     ch = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_channel'") or "").strip()
     if not en or not ch:
-        return False, ch, True
+        return False, ch, True, True
     target = ch
     if target.lstrip("-").isdigit():
         target = int(target)
     try:
         m = await bot.get_chat_member(target, user_id)
         ok = m.status in ("member","administrator","creator","restricted")
-        return True, ch, ok
-    except Exception as e:
+        return True, ch, ok, True
+    except BadRequest as e:
+        s = str(e).lower()
+        if "user not found" in s:
+            return True, ch, False, True
+        # member list inaccessible / bot is not admin / chat not found etc.
+        await _alert_force_sub_misconfig(bot, ch, str(e))
+        return True, ch, True, False
+    except Forbidden as e:
+        await _alert_force_sub_misconfig(bot, ch, str(e))
+        return True, ch, True, False
+    except TelegramError as e:
         log.warning("force sub check failed: %s", e)
-        return True, ch, False
+        await _alert_force_sub_misconfig(bot, ch, str(e))
+        return True, ch, True, False
+
+async def _alert_force_sub_misconfig(bot, channel, err):
+    key = (channel or "").strip().lower()
+    if key in _FORCE_SUB_ALERTED:
+        return
+    _FORCE_SUB_ALERTED.add(key)
+    try:
+        await notify_superadmin(
+            bot,
+            (
+                "⚠️ <b>Force-Sub misconfigured</b>\n"
+                f"Channel: <code>{channel}</code>\n"
+                f"Error: <code>{err[:200]}</code>\n\n"
+                f"Please add <b>@{config.BOT_USERNAME}</b> as an admin of the "
+                f"force-sub channel with permission to view members. Until then the "
+                f"join check is skipped so users are not locked out."
+            ),
+        )
+    except Exception as e:
+        log.warning("force-sub alert failed: %s", e)
 
 def _force_sub_keyboard(channel):
     handle = channel.lstrip("@")
@@ -67,7 +108,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     referrer = await get_user(ref_id)
                     if referrer and not referrer["is_banned"]:
                         await db.execute("UPDATE users SET pending_referrer_id=$2 WHERE user_id=$1", u.id, ref_id)
-                        fs_en, fs_ch, is_mem = await _force_sub_check(context.bot, u.id)
+                        fs_en, fs_ch, is_mem, bot_ok = await _force_sub_check(context.bot, u.id)
                         if fs_en and not is_mem:
                             await update.message.reply_text(
                                 f"🔗 You were invited by a friend!\n\nJoin our channel first to unlock your reward:",
@@ -121,12 +162,20 @@ async def force_sub_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try: await q.edit_message_text("✅ Nothing to verify. Tap /start.")
         except Exception: pass
         return
-    fs_en, fs_ch, is_mem = await _force_sub_check(context.bot, u.id)
+    fs_en, fs_ch, is_mem, bot_ok = await _force_sub_check(context.bot, u.id)
     if fs_en and not is_mem:
         try:
             await q.answer("Not joined yet. Please join the channel first.", show_alert=True)
         except Exception: pass
         return
+    if fs_en and not bot_ok:
+        try:
+            await q.answer(
+                "Verification temporarily unavailable — admin has been notified. "
+                "Crediting your reward now.",
+                show_alert=True,
+            )
+        except Exception: pass
     await _credit_referral(context.bot, u.id, row["pending_referrer_id"], u.first_name)
     try:
         await q.edit_message_text("🎉 Verified! Referral reward credited. Tap /start to begin.")
