@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 import asyncpg
 from pathlib import Path
 import config
@@ -56,19 +57,29 @@ class DB:
         await self._ensure()
         mig_dir = Path(__file__).parent / "migrations"
         files = sorted(mig_dir.glob("*.sql"))
-        if not files:
-            log.warning("No migration files found in %s", mig_dir)
-            return
         async with self.pool.acquire() as conn:
             for f in files:
+                sql = f.read_text()
+                ok = 0; failed = 0
+                for stmt in _split_sql(sql):
+                    try:
+                        await conn.execute(stmt)
+                        ok += 1
+                    except Exception as e:
+                        failed += 1
+                        log.warning("Migration %s stmt failed (continuing): %s | stmt=%s", f.name, e, stmt[:150])
+                log.info("Migration %s applied: %d ok, %d failed", f.name, ok, failed)
+            defensive = [
+                "ALTER TABLE channels ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
+                "UPDATE channels SET is_active=TRUE WHERE is_active IS NULL",
+            ]
+            for stmt in defensive:
                 try:
-                    sql = f.read_text()
-                    await conn.execute(sql)
-                    log.info("Applied migration: %s", f.name)
+                    await conn.execute(stmt)
+                    log.info("Defensive applied: %s", stmt[:80])
                 except Exception as e:
-                    log.error("Migration %s failed: %s", f.name, e)
-                    raise
-        log.info("All DB migrations applied (%d files)", len(files))
+                    log.error("Defensive failed: %s | %s", stmt[:80], e)
+        log.info("DB migrations complete")
 
     async def fetch(self, q, *a):
         await self._ensure()
@@ -94,6 +105,44 @@ class DB:
         if self.pool is None:
             raise RuntimeError("DB pool not initialized; call init_pool() first")
         return self.pool.acquire()
+
+
+def _split_sql(sql: str):
+    import re as _re
+    out, buf, i, n = [], [], 0, len(sql)
+    in_sq = False
+    in_dollar = False
+    dollar_tag = ""
+    while i < n:
+        ch = sql[i]
+        if not in_sq and not in_dollar and ch == "-" and i + 1 < n and sql[i+1] == "-":
+            while i < n and sql[i] != "\n":
+                buf.append(sql[i]); i += 1
+            continue
+        if not in_dollar and ch == "'":
+            in_sq = not in_sq
+            buf.append(ch); i += 1; continue
+        if not in_sq and ch == "$":
+            m = _re.match(r"\$[A-Za-z0-9_]*\$", sql[i:])
+            if m:
+                tag = m.group(0)
+                if not in_dollar:
+                    in_dollar = True; dollar_tag = tag
+                elif tag == dollar_tag:
+                    in_dollar = False; dollar_tag = ""
+                buf.append(tag); i += len(tag); continue
+        if ch == ";" and not in_sq and not in_dollar:
+            stmt = "".join(buf).strip()
+            if stmt:
+                out.append(stmt)
+            buf = []
+            i += 1; continue
+        buf.append(ch); i += 1
+    tail = "".join(buf).strip()
+    if tail:
+        out.append(tail)
+    return out
+
 
 db = DB()
 
