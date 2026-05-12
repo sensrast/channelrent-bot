@@ -40,7 +40,14 @@ async def analytics_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     o = await get_overview()
     chart = await get_7day_chart()
     top = await get_top_channels(5)
-    top_txt = "\n".join(f"{i+1}. {r['title']} — {r['total_bookings']}" for i,r in enumerate(top)) or "—"
+    from utils.channel_links import get_channel_link
+    lines = []
+    for i, r in enumerate(top):
+        link = await get_channel_link(r, bot=context.bot)
+        title = (r['title'] or '-').replace('<','&lt;').replace('>','&gt;')
+        label = f'<a href="{link}">{title}</a>' if link else title
+        lines.append(f"{i+1}. {label} — {r['total_bookings']}")
+    top_txt = "\n".join(lines) or "—"
     txt = (f"📊 <b>Analytics</b>\n\n"
            f"Users: {o['total_users']}\nActive bookings: {o['active']}\nRev today: {o['rev_today']} cr\nRev month: {o['rev_month']} cr\n\n"
            f"<b>Last 7 days</b>\n<pre>{chart}</pre>\n"

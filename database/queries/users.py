@@ -49,3 +49,6 @@ async def all_user_ids(only_active=True):
     if only_active:
         return [r["user_id"] for r in await db.fetch("SELECT user_id FROM users WHERE is_banned=FALSE AND has_blocked_bot=FALSE")]
     return [r["user_id"] for r in await db.fetch("SELECT user_id FROM users")]
+
+async def list_users(limit=20, offset=0):
+    return await db.fetch("SELECT user_id, username, first_name, is_banned, credits_balance FROM users ORDER BY last_active DESC NULLS LAST, user_id DESC LIMIT $1 OFFSET $2", limit, offset)

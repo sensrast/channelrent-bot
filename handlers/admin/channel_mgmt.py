@@ -1,7 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from utils.decorators import superadmin_only
-from utils.keyboards import kb, back
+from utils.keyboards import kb, kb_url, back
+from utils.channel_links import get_channel_link
 from database.queries.channels import list_all_verified, update_channel, get_channel
 
 @superadmin_only
@@ -29,11 +30,13 @@ async def channel_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = (f"📢 <b>{c['title']}</b>\nOwner: <code>{c['owner_id']}</code>\n"
            f"Subs: {c['subscriber_count']:,} • {c['final_price_credits']} cr/hr\n"
            f"Listed: {c['is_listed']} • Suspended: {c['is_suspended']}")
-    rows = [
-        [("🔴 Suspend" if not c["is_suspended"] else "✅ Unsuspend", f"admin:ch:sus:{cid}")],
-        back("admin:channels"),
-    ]
-    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+    link = await get_channel_link(c, bot=context.bot)
+    rows = []
+    if link:
+        rows.append([("🔗 Visit Channel", link, "url")])
+    rows.append([("🔴 Suspend" if not c["is_suspended"] else "✅ Unsuspend", f"admin:ch:sus:{cid}", "cd")])
+    rows.append([("🔙 Back", "admin:channels", "cd")])
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb_url(rows))
 
 @superadmin_only
 async def channel_suspend(update: Update, context: ContextTypes.DEFAULT_TYPE):
