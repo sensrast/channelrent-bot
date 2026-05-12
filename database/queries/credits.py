@@ -1,11 +1,13 @@
 from database.pool import db
+from decimal import Decimal
 
 async def adjust_credits(conn, user_id, delta, tx_type, description=None, booking_id=None, created_by=None, payment_method=None, payment_reference=None, payment_screenshot_file_id=None, payment_amount_inr=None, payment_verified=False):
     row = await conn.fetchrow("SELECT credits_balance FROM users WHERE user_id=$1 FOR UPDATE", user_id)
     if not row:
         raise ValueError("user not found")
-    bal = row["credits_balance"]
-    new_bal = bal + delta
+    bal = Decimal(str(row["credits_balance"] or 0))
+    delta = Decimal(str(delta))
+    new_bal = (bal + delta).quantize(Decimal("0.01"))
     if new_bal < 0:
         raise ValueError("insufficient credits")
     await conn.execute("UPDATE users SET credits_balance=$2 WHERE user_id=$1", user_id, new_bal)

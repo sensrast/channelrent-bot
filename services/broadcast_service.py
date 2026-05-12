@@ -6,7 +6,20 @@ import config
 
 log = logging.getLogger(__name__)
 
-WATERMARK = f"\n\n📢 Promoted via {config.PLATFORM_NAME}"
+DEFAULT_WATERMARK = f"\n\n📢 Promoted via {config.PLATFORM_NAME}"
+
+async def _watermark():
+    try:
+        from database.pool import db
+        en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='watermark_enabled'") or "true").lower() == "true"
+        if not en:
+            return ""
+        txt = await db.fetchval("SELECT value FROM platform_settings WHERE key='watermark_text'")
+        if txt:
+            return "\n\n" + txt
+        return DEFAULT_WATERMARK
+    except Exception:
+        return DEFAULT_WATERMARK
 
 def _buttons(buttons_json):
     if not buttons_json: return None
@@ -20,21 +33,18 @@ def _buttons(buttons_json):
 async def post_to_channel(bot: Bot, booking, watermark=True):
     chat_id = booking["telegram_chat_id"]
     ct = booking["content_type"]
-    caption = (booking.get("caption") or "") + (WATERMARK if watermark else "")
-    text = (booking.get("content_text") or "") + (WATERMARK if watermark else "")
+    wm = await _watermark() if watermark else ""
+    caption = (booking.get("caption") or "") + wm
+    text = (booking.get("content_text") or "") + wm
     markup = _buttons(booking.get("inline_buttons_json"))
     if ct == "text":
         msg = await bot.send_message(chat_id, text, reply_markup=markup, disable_web_page_preview=False)
     elif ct == "photo":
         msg = await bot.send_photo(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
-    elif ct == "video":
-        msg = await bot.send_video(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
     elif ct == "document":
         msg = await bot.send_document(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
-    elif ct == "animation":
-        msg = await bot.send_animation(chat_id, booking["media_file_id"], caption=caption, reply_markup=markup)
     else:
-        raise ValueError(f"Unknown content_type {ct}")
+        raise ValueError(f"Unsupported content_type {ct}")
     return msg.message_id
 
 async def delete_from_channel(bot: Bot, chat_id, message_id):
@@ -59,5 +69,12 @@ async def message_exists(bot: Bot, from_chat_id, message_id, target_chat_id):
         except Exception:
             pass
         return True
+    except BadRequest as e:
+        s = str(e).lower()
+        if "not found" in s or "message to forward" in s or "message_id_invalid" in s:
+            return False
+        return True
+    except Forbidden:
+        return True
     except TelegramError:
-        return False
+        return True

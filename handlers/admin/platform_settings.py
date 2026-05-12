@@ -14,14 +14,13 @@ BOOL_KEYS = {"marketplace_enabled","maintenance_mode","watermark_enabled"}
 def _is_truthy(v):
     return str(v).strip().lower() in ("1","true","yes","on","t","y")
 
-
 EDIT = 0
 
 KEYS = [
     "platform_commission_percent","min_topup_credits","max_topup_credits","min_payout_credits",
     "credits_per_rupee","min_booking_hours","max_booking_hours","max_channels_per_owner",
     "max_active_bookings_per_advertiser","referral_bonus_credits","new_user_bonus_credits",
-    "marketplace_enabled","maintenance_mode","maintenance_message","watermark_enabled",
+    "marketplace_enabled","maintenance_mode","maintenance_message","watermark_enabled","watermark_text",
 ]
 
 @superadmin_only
@@ -56,7 +55,6 @@ async def toggle_setting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new_val = "false" if _is_truthy(cur) else "true"
     await db.execute("UPDATE platform_settings SET value=$2, updated_at=NOW(), updated_by=$3 WHERE key=$1", key, new_val, q.from_user.id)
     await settings_panel(update, context)
-
 
 async def set_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query

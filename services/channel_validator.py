@@ -4,9 +4,15 @@ from telegram.error import TelegramError
 
 log = logging.getLogger(__name__)
 
-async def verify_bot_is_admin(bot: Bot, chat_id_or_username: str):
+async def verify_bot_is_admin(bot: Bot, chat_id_or_username):
+    """Accepts @username, t.me link, or numeric chat_id (works for private channels)."""
     try:
-        chat = await bot.get_chat(chat_id_or_username)
+        target = chat_id_or_username
+        if isinstance(target, str):
+            t = target.strip()
+            if t.lstrip("-").isdigit():
+                target = int(t)
+        chat = await bot.get_chat(target)
         me = await bot.get_me()
         member = await bot.get_chat_member(chat.id, me.id)
         is_admin = member.status in ("administrator","creator")
