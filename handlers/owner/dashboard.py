@@ -87,7 +87,7 @@ async def channel_remove(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cid = int(q.data.split(":")[3])
     c = await get_channel(cid)
     if not c or c["owner_id"] != q.from_user.id: return
-    await update_channel(cid, is_listed=False, is_paused=True)
+    await update_channel(cid, is_listed=False, is_paused=True, is_active=False)
     await q.edit_message_text(f"🗑️ {c['title']} delisted.", reply_markup=kb([back("owner:channels")]))
 
 async def earnings_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
