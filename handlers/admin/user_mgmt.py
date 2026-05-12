@@ -49,8 +49,8 @@ async def user_search_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @superadmin_only
 async def user_search_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.message.text.strip()
-    res = await search_users(q, 20)
+    qtext = update.message.text.strip()
+    res = await search_users(qtext, 20)
     if not res:
         await update.message.reply_text("No users found.")
         return ConversationHandler.END
@@ -63,15 +63,21 @@ async def user_search_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 @superadmin_only
-async def user_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def user_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show detail panel for a user. Works for users with OR without a username."""
     q = update.callback_query
     await q.answer()
-    uid = int(q.data.split(":")[2])
+    parts = (q.data or "").split(":")
+    # admin:user:<uid>  OR  admin:user:adj:<uid>  is handled by adjust_credits_start
+    if len(parts) < 3 or not parts[2].lstrip("-").isdigit():
+        await q.answer("Invalid", show_alert=True); return
+    uid = int(parts[2])
     u = await get_user(uid)
     if not u:
         await q.edit_message_text("Not found.", reply_markup=kb([back("admin:users")]))
         return
-    detail = (f"👤 <b>{u['first_name'] or '-'}}</b>\n"
+    name = (u['first_name'] or '-')
+    detail = (f"👤 <b>{name}</b>\n"
               f"ID: <code>{u['user_id']}</code>\n"
               f"Username: @{u['username'] or '-'}\n"
               f"Credits: {fmt_credits(u['credits_balance'])}\n"
@@ -79,25 +85,33 @@ async def user_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
               f"Referred by: {u['referred_by'] or '-'}\n"
               f"Status: {'🚫 Banned' if u['is_banned'] else '✅ Active'}\n")
     username = u['username']
+    rows = []
+    # DM button: only use t.me URL when a username exists (tg://user?id=... is not allowed
+    # as a button URL by Telegram for bots). For username-less users we keep them as
+    # callback-only actions so the rest of the buttons still work.
     if username:
-        rows = [[ ("💢 DM User", f"https://t.me/{username}", "url") ]]
-    else:
-        rows = [[ ("💢 DM User (open)", f"tg://user?id={uid}", "url") ]]
-    rows += [
-        [("💰 Adjust Credits", f"admin:user:adj:{uid}")],
-        [("🚫 Ban" if not u['is_banned'] else "✅ Unban", f"admin:user:ban:{uid}:{0 if u['is_banned'] else 1}")],
-        [back("admin:users")],
-    ]
-    from utils.keyboards import kb_url
+        rows.append([ ("💢 DM User", f"https://t.me/{username}", "url") ])
+    rows.append([("💰 Adjust Credits", f"admin:user:adj:{uid}")])
+    rows.append([("🚫 Ban" if not u['is_banned'] else "✅ Unban",
+                  f"admin:user:ban:{uid}:{0 if u['is_banned'] else 1}")])
+    rows.append([("✉️ Send Message", f"admin:user:msg:{uid}")])
+    rows.append([back("admin:users")])
     await q.edit_message_text(detail, parse_mode="HTML", reply_markup=kb_url(rows))
+
+# Backward-compat alias (callbacks.py imports user_view; older code used user_detail).
+user_detail = user_view
 
 @superadmin_only
 async def adjust_credits_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
-    uid = int(q.data.split(":")[3])
+    parts = q.data.split(":")
+    uid = int(parts[3])
     context.user_data['admin_adj_uid'] = uid
-    await q.edit_message_text(f"Amount for {uid} (positive add, negative deduct):", reply_markup=kb([back("admin:user")]))
+    await q.edit_message_text(
+        f"Amount for user <code>{uid}</code> (positive add, negative deduct):",
+        parse_mode="HTML",
+        reply_markup=kb([[("🔙 Back", f"admin:user:{uid}")]]))
     return CRED_AMT
 
 @superadmin_only
@@ -118,10 +132,81 @@ async def adjust_credits_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 @superadmin_only
-async def ban_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def user_ban_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Toggle ban via callback admin:user:ban:<uid>:<0|1>."""
     q = update.callback_query
     await q.answer()
     data = q.data.split(":")
-    uid = int(data[2]); ban = data[3] == "1"
+    uid = int(data[3]); ban = data[4] == "1"
     await set_banned(uid, ban)
-    await q.edit_message_text("🚯 Updated.", reply_markup=kb([back("admin:user")]))
+    await q.edit_message_text(
+        ("🚫 User banned." if ban else "✅ User unbanned."),
+        reply_markup=kb([[("🔙 Back", f"admin:user:{uid}")]]))
+
+ban_action = user_ban_toggle  # backward-compat alias
+
+MSG_TEXT = 100
+
+@superadmin_only
+async def user_msg_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    uid = int(q.data.split(":")[3])
+    context.user_data['admin_msg_uid'] = uid
+    await q.edit_message_text(
+        f"✉️ Send the message to deliver to user <code>{uid}</code>:",
+        parse_mode="HTML",
+        reply_markup=kb([[("🔙 Back", f"admin:user:{uid}")]]))
+    return MSG_TEXT
+
+@superadmin_only
+async def user_msg_do(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    uid = context.user_data.pop('admin_msg_uid', None)
+    if not uid:
+        await msg.reply_text("Session expired.")
+        return ConversationHandler.END
+    try:
+        await context.bot.send_message(uid, f"📩 <b>Message from admin</b>\n\n{msg.text}", parse_mode="HTML")
+        await msg.reply_text(f"✅ Delivered to {uid}.")
+    except Exception as e:
+        await msg.reply_text(f"❌ Failed: {e}")
+    return ConversationHandler.END
+
+
+def build_user_admin_conv():
+    """Return a list of handlers for admin user-management flows.
+
+    main.py iterates the list and registers each handler.
+    Routes:
+      admin:users:search    -> ask query -> show results
+      admin:user:adj:<uid>  -> ask amount -> adjust
+      admin:user:ban:<uid>:<0|1> -> toggle ban (no conv state)
+      admin:user:msg:<uid>  -> ask text -> deliver
+    """
+    search_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(user_search_start, pattern=r"^admin:users:search$")],
+        states={SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, user_search_do)]},
+        fallbacks=[CallbackQueryHandler(_univ_cancel, pattern=r"^admin:users$")],
+        conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
+        per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True, name="admin_user_search",
+    )
+    adj_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(adjust_credits_start, pattern=r"^admin:user:adj:\d+$")],
+        states={CRED_AMT: [MessageHandler(filters.TEXT & ~filters.COMMAND, adjust_credits_do)]},
+        fallbacks=[CallbackQueryHandler(_univ_cancel, pattern=r"^admin:user:\d+$")],
+        conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
+        per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True, name="admin_user_adj",
+    )
+    msg_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(user_msg_start, pattern=r"^admin:user:msg:\d+$")],
+        states={MSG_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, user_msg_do)]},
+        fallbacks=[CallbackQueryHandler(_univ_cancel, pattern=r"^admin:user:\d+$")],
+        conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
+        per_user=True, per_chat=True, per_message=False,
+        allow_reentry=True, name="admin_user_msg",
+    )
+    ban_handler = CallbackQueryHandler(user_ban_toggle, pattern=r"^admin:user:ban:\d+:[01]$")
+    return [search_conv, adj_conv, msg_conv, ban_handler]
