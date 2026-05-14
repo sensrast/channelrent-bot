@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
-from utils.keyboards import kb, back
+from utils.keyboards import kb, kb_url, back
 from database.queries.bookings import get_booking, update_booking
 from database.queries.credits import adjust_credits
 from database.pool import db
@@ -113,9 +113,32 @@ async def approve_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await q.edit_message_text(confirm_text, parse_mode="HTML", reply_markup=kb([back("owner:bookings")]))
         except Exception:
             await context.bot.send_message(q.message.chat_id, confirm_text, parse_mode="HTML", reply_markup=kb([back("owner:bookings")]))
+        post_url = None
+        try:
+            uname = b.get("channel_username")
+            if uname:
+                post_url = f"https://t.me/{str(uname).lstrip('@')}/{msg_id}"
+            else:
+                cid = b.get("telegram_chat_id")
+                if cid is not None:
+                    try:
+                        cid_int = int(cid)
+                        if cid_int < 0:
+                            short = str(cid_int).replace("-100", "").lstrip("-")
+                            post_url = f"https://t.me/c/{short}/{msg_id}"
+                    except Exception:
+                        pass
+        except Exception:
+            post_url = None
+        approve_markup = None
+        if post_url:
+            try:
+                approve_markup = kb_url([[("🔗 View your post", post_url, "url")]])
+            except Exception:
+                approve_markup = None
         await notify(context.bot, b["advertiser_id"], "booking_approved",
             f"✅ <b>Approved!</b>\nBooking: <code>{b['booking_ref']}</code>\nLive until {sched:%Y-%m-%d %H:%M UTC}",
-            booking_id=bid)
+            booking_id=bid, reply_markup=approve_markup)
     except Exception as e:
         log.exception("approve post failed: %s", e)
         try:
