@@ -15,6 +15,25 @@ def fmt_credits(n):
     except Exception:
         return str(n)
 
+def fmt_subs_short(n):
+    try:
+        n = int(n or 0)
+    except Exception:
+        return "0"
+    if n < 1000:
+        return str(n)
+    if n < 1000000:
+        v = n / 1000.0
+        s = f"{v:.1f}".rstrip("0").rstrip(".")
+        return f"{s}k"
+    if n < 1000000000:
+        v = n / 1000000.0
+        s = f"{v:.1f}".rstrip("0").rstrip(".")
+        return f"{s}M"
+    v = n / 1000000000.0
+    s = f"{v:.1f}".rstrip("0").rstrip(".")
+    return f"{s}B"
+
 def fmt_time_remaining(end_dt):
     if not end_dt: return "-"
     now = datetime.now(timezone.utc)
