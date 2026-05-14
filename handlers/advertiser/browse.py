@@ -1,7 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from utils.keyboards import kb, back, pagination
+from utils.keyboards import kb, kb_url, back, pagination
 from utils.formatters import fmt_credits, activity_emoji, fmt_subs_short
+from utils.channel_links import get_channel_link
 from database.queries.channels import list_marketplace, count_marketplace, list_all_categories
 
 PAGE_SIZE = 5
@@ -28,28 +29,38 @@ async def browse_panel(update, context, page=None):
     rows = await list_marketplace(f["category_id"], f["tier"], f["budget"], f["min_subs"], f["sort"], offset=page*PAGE_SIZE, limit=PAGE_SIZE)
     total = await count_marketplace(f["category_id"], f["tier"], f["budget"], f["min_subs"])
     pages = max(1, (total + PAGE_SIZE - 1)//PAGE_SIZE)
-    head = f"🔍 <b>Browse Channels</b> ({total} found)\n\n"
+    head = f"\U0001f50d <b>Browse Channels</b> ({total} found)\n\n"
     if not rows:
         head += "No channels match. Try changing filters."
     body = ""
     for c in rows:
-        cat = c.get("category_emoji","📂")
-        body += (f"\n━━━━━━━━━━━━━━━━━\n{cat} <b>{c['title']}</b>\n"
-                 f"👥 {fmt_credits(c['subscriber_count'])} subs • {activity_emoji(c['activity_tier'])} {c['activity_tier'].upper()}\n"
-                 f"💰 <b>{c['final_price_credits']} cr/hr</b> • ⭐ {c['rating']:.1f} ({c['rating_count']})\n")
+        cat = c.get("category_emoji","\U0001f4c2")
+        body += (f"\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n{cat} <b>{c['title']}</b>\n"
+                 f"\U0001f465 {fmt_credits(c['subscriber_count'])} subs \u2022 {activity_emoji(c['activity_tier'])} {c['activity_tier'].upper()}\n"
+                 f"\U0001f4b0 <b>{c['final_price_credits']} cr/hr</b> \u2022 \u2b50 {c['rating']:.1f} ({c['rating_count']})\n")
     kbrows = []
     for c in rows:
         title = c['title'][:22]
         subs_label = fmt_subs_short(c.get('subscriber_count') or 0)
-        kbrows.append([(f"📋 {title} ({subs_label})", f"adv:ch:{c['channel_id']}")])
-    kbrows.append([("🎛️ Filters","adv:filters"),("🔁 Sort","adv:sort")])
+        is_private = not c.get('username')
+        view_link = None
+        try:
+            view_link = await get_channel_link(c, bot=context.bot, require_approval=is_private)
+        except Exception:
+            view_link = None
+        row_btns = [(f"\U0001f4cb {title} ({subs_label})", f"adv:ch:{c['channel_id']}", "cd")]
+        if view_link:
+            label = "\U0001f517 View (Require Approval)" if is_private else "\U0001f517 View Channel"
+            row_btns.append((label, view_link, "url"))
+        kbrows.append(row_btns)
+    kbrows.append([("\U0001f39b\ufe0f Filters","adv:filters","cd"),("\U0001f501 Sort","adv:sort","cd")])
     pgrow = []
-    if page > 0: pgrow.append(("◀️ Prev", f"adv:browse:p:{page-1}"))
-    pgrow.append((f"{page+1}/{pages}", "noop"))
-    if page < pages-1: pgrow.append(("Next ▶️", f"adv:browse:p:{page+1}"))
+    if page > 0: pgrow.append(("\u25c0\ufe0f Prev", f"adv:browse:p:{page-1}", "cd"))
+    pgrow.append((f"{page+1}/{pages}", "noop", "cd"))
+    if page < pages-1: pgrow.append(("Next \u25b6\ufe0f", f"adv:browse:p:{page+1}", "cd"))
     kbrows.append(pgrow)
-    kbrows.append(back("home"))
-    await q.edit_message_text(head + body, parse_mode="HTML", reply_markup=kb(kbrows))
+    kbrows.append([("\U0001f519 Back","home","cd")])
+    await q.edit_message_text(head + body, parse_mode="HTML", reply_markup=kb_url(kbrows))
 
 async def filters_panel(update, context):
     q = update.callback_query
@@ -63,16 +74,16 @@ async def filters_panel(update, context):
     tier_label = (f["tier"] or "All").upper()
     budget_label = f["budget"] or "Any"
     subs_label = f["min_subs"] or "Any"
-    txt = (f"🎛️ <b>Filters</b>\n\nCategory: <b>{cat_label}</b>\nActivity: <b>{tier_label}</b>\n"
+    txt = (f"\U0001f39b\ufe0f <b>Filters</b>\n\nCategory: <b>{cat_label}</b>\nActivity: <b>{tier_label}</b>\n"
            f"Budget (max cr/hr): <b>{budget_label}</b>\nMin Subscribers: <b>{subs_label}</b>")
     rows = [
-        [("📂 Category","adv:f:cat")],
-        [("⚡ Activity: All","adv:f:t:none"),("🔥 HIGH","adv:f:t:high")],
-        [("⚡ MEDIUM","adv:f:t:medium"),("🌱 LOW","adv:f:t:low")],
-        [("💰 <100","adv:f:b:100"),("100-500","adv:f:b:500")],
+        [("\U0001f4c2 Category","adv:f:cat")],
+        [("\u26a1 Activity: All","adv:f:t:none"),("\U0001f525 HIGH","adv:f:t:high")],
+        [("\u26a1 MEDIUM","adv:f:t:medium"),("\U0001f331 LOW","adv:f:t:low")],
+        [("\U0001f4b0 <100","adv:f:b:100"),("100-500","adv:f:b:500")],
         [("500-1000","adv:f:b:1000"),("Any","adv:f:b:none")],
-        [("👥 1K+","adv:f:s:1000"),("10K+","adv:f:s:10000"),("100K+","adv:f:s:100000")],
-        [("🔄 Reset","adv:f:reset")],
+        [("\U0001f465 1K+","adv:f:s:1000"),("10K+","adv:f:s:10000"),("100K+","adv:f:s:100000")],
+        [("\U0001f504 Reset","adv:f:reset")],
         back("adv:browse"),
     ]
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
@@ -81,12 +92,12 @@ async def sort_panel(update, context):
     q = update.callback_query
     await q.answer()
     rows = [
-        [("⭐ Rating","adv:f:srt:rating")],
-        [("💰 Price ↑","adv:f:srt:price_asc"),("💰 Price ↓","adv:f:srt:price_desc")],
-        [("👥 Subscribers","adv:f:srt:subs"),("⚡ Activity","adv:f:srt:activity")],
+        [("\u2b50 Rating","adv:f:srt:rating")],
+        [("\U0001f4b0 Price \u2191","adv:f:srt:price_asc"),("\U0001f4b0 Price \u2193","adv:f:srt:price_desc")],
+        [("\U0001f465 Subscribers","adv:f:srt:subs"),("\u26a1 Activity","adv:f:srt:activity")],
         back("adv:browse"),
     ]
-    await q.edit_message_text("🔁 <b>Sort By</b>", parse_mode="HTML", reply_markup=kb(rows))
+    await q.edit_message_text("\U0001f501 <b>Sort By</b>", parse_mode="HTML", reply_markup=kb(rows))
 
 async def category_picker(update, context):
     q = update.callback_query
@@ -99,7 +110,7 @@ async def category_picker(update, context):
         if len(cur)==2: rows.append(cur); cur=[]
     if cur: rows.append(cur)
     rows.append(back("adv:filters"))
-    await q.edit_message_text("📂 <b>Pick Category</b>", parse_mode="HTML", reply_markup=kb(rows))
+    await q.edit_message_text("\U0001f4c2 <b>Pick Category</b>", parse_mode="HTML", reply_markup=kb(rows))
 
 async def apply_filter(update, context):
     q = update.callback_query
