@@ -14,6 +14,7 @@ from handlers.advertiser.wallet import wallet_panel, txn_history, topup_start
 from handlers.advertiser.browse import browse_panel, filters_panel, sort_panel, category_picker, apply_filter
 from handlers.advertiser.channel_detail import channel_detail, report_start
 from handlers.advertiser.my_bookings import my_bookings, view_booking, delete_early_confirm, delete_early_go, cancel_pending
+from handlers.advertiser.rating import submit_rating
 from handlers.owner.dashboard import (my_channels, channel_manage, channel_pause, channel_refresh, channel_remove,
                                       earnings_panel, incoming_bookings, view_owner_booking)
 from handlers.admin.dashboard import admin_panel, analytics_panel
@@ -42,9 +43,9 @@ async def home_handler(update, context):
         user, n = None, 0
     bal = user["credits_balance"] if user else 0
     earn = user["earnings_pending"] if user else 0
-    text = (f"🏪 <b>{config.PLATFORM_NAME}</b>\n\n"
-            f"💰 Credits: <b>{fmt_credits(bal)}</b>"
-            + (f" | 📈 Earnings: <b>{fmt_credits(earn)}</b>" if n else "")
+    text = (f"\U0001f3ea <b>{config.PLATFORM_NAME}</b>\n\n"
+            f"\U0001f4b0 Credits: <b>{fmt_credits(bal)}</b>"
+            + (f" | \U0001f4c8 Earnings: <b>{fmt_credits(earn)}</b>" if n else "")
             + "\n\nChoose an option:")
     markup = main_menu(n>0, u.id in config.SUPERADMIN_IDS)
     try:
@@ -94,6 +95,7 @@ PREFIX_ROUTES = [
     ("adv:f:", apply_filter),
     ("adv:ch:", channel_detail),
     ("adv:report:", report_start),
+    ("adv:rate:", submit_rating),
     ("adv:bk:del:", delete_early_confirm),
     ("adv:bk:delgo:", delete_early_go),
     ("adv:bk:cancel:", cancel_pending),
@@ -118,7 +120,7 @@ async def callback_router(update, context):
     if not q: return
     u = q.from_user
     if not allow(u.id):
-        await q.answer("⏳ Slow down", show_alert=False); return
+        await q.answer("\u23f3 Slow down", show_alert=False); return
     data = q.data or ""
     if data == "noop":
         await q.answer(); return
@@ -139,5 +141,5 @@ async def callback_router(update, context):
                 except: pass
                 return
     if data.startswith("admin:") and u.id not in config.SUPERADMIN_IDS:
-        await q.answer("⛔", show_alert=True); return
+        await q.answer("\u26d4", show_alert=True); return
     await q.answer()
