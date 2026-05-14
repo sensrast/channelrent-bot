@@ -13,18 +13,18 @@ async def my_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = await list_owner_channels(q.from_user.id)
     if not rows:
         await q.edit_message_text("📢 <b>My Channels</b>\n\nNo channels yet.",
-            parse_mode="HTML", reply_markup=kb([[("➕ Add Channel","owner:add")],back("home")]))
+            parse_mode="HTML", reply_markup=kb([[("◣ Add Channel","owner:add")],back("home")]))
         return
     txt = f"📢 <b>My Channels ({len(rows)})</b>\n"
     kb_rows = []
     for c in rows[:10]:
-        state = "🟢 Active" if c["is_listed"] and not c["is_paused"] and not c["is_suspended"] else "🟡 Paused" if c["is_paused"] else "🔴 Off"
+        state = "🟢 Active" if c["is_listed"] and not c["is_paused"] and not c["is_suspended"] else "🟡 Paused" if c["is_paused"] else "🟠 Off"
         txt += (f"\n━━━━━━━━━━━━━━━\n📢 <b>{c['title']}</b>\n"
                 f"👥 {fmt_credits(c['subscriber_count'])} • {activity_emoji(c['activity_tier'])} {c['activity_tier'].upper()}\n"
                 f"💰 {c['final_price_credits']} cr/hr • {state}\n"
-                f"⭐ {c['rating']:.1f} ({c['rating_count']})")
-        kb_rows.append([(f"⚙️ {c['title'][:25]}", f"owner:ch:{c['channel_id']}")])
-    kb_rows.append([("➕ Add Channel","owner:add")])
+                f"⬐ {c['rating']:.1f} ({c['rating_count']})")
+        kb_rows.append([(f"⚈️ {c['title'][:25]}", f"owner:ch:{c['channel_id']}")])
+    kb_rows.append([("✗ Add Channel","owner:add")])
     kb_rows.append(back("home"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
 
@@ -36,19 +36,19 @@ async def channel_manage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not c or c["owner_id"] != q.from_user.id:
         await q.edit_message_text("Not found.", reply_markup=kb([back("owner:channels")]))
         return
-    txt = (f"⚚️ <b>{c['title']}</b>\n\n"
+    txt = (f"⚖️ <b>{c['title']}</b>\n\n"
            f"👥 Subscribers: {fmt_credits(c['subscriber_count'])}\n"
            f"👁️Avg Views: {fmt_credits(c['avg_views_24h'])}\n"
            f"{activity_emoji(c['activity_tier'])} Activity: {c['activity_tier'].upper()} ({c['activity_score']}/100)\n"
            f"💰 Rate: {c['final_price_credits']} cr/hr\n"
            f"📋 Total bookings: {c['total_bookings']}\n"
            f"💰 Revenue: {fmt_credits(c['total_revenue_credits'])} cr\n"
-           f"⭐ {c['rating']:.1f} ({c['rating_count']})")
+           f"⬐ {c['rating']:.1f} ({c['rating_count']})")
     pause_label = "▶️ Resume Listing" if c["is_paused"] else "⏸️ Pause Listing"
     rows = [
-        [("👁️ Refresh Stats", f"owner:ch:refresh:{cid}")],
+        [("👁 Refresh Stats", f"owner:ch:refresh:{cid}")],
         [(pause_label, f"owner:ch:pause:{cid}")],
-        [("🗑️ Remove Channel", f"owner:ch:rm:{cid}")],
+        [("🗐️ Remove Channel", f"owner:ch:rm:{cid}")],
         back("owner:channels"),
     ]
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
@@ -100,7 +100,7 @@ async def earnings_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         min_payout = int(float(v)) if v is not None else 500
     except Exception:
         min_payout = 500
-    txt = (f"📊 <b>My Earnings</b>\n\n"
+    txt = (f"📈 <b>My Earnings</b>\n\n"
            f"💎 Pending: <b>{fmt_credits(user['earnings_pending'])} cr</b>\n"
            f"✅ Paid out: {fmt_credits(user['earnings_paid'])} cr\n\n"
            f"Minimum payout: {min_payout} cr\n")
@@ -135,5 +135,9 @@ async def view_owner_booking(update: Update, context: ContextTypes.DEFAULT_TYPE)
     _, owner_earn = commission_split(b["total_credits_charged"])
     txt = (f"📋 <b>{b['booking_ref']}</b>\n\nChannel: {b['channel_title']}\nDuration: {b['duration_hours']}h\n"
            f"Status: {b['status']}\nYou'll earn (max): {owner_earn} cr")
+    rows = []
+    if b["status"] == "pending_approval":
+        rows.append([("👁️ Preview Ad", f"owner:prev:{bid}")])
+        rows.append([("✅ Approve", f"owner:apv:{bid}"), ("❌ Reject", f"owner:rej:{bid}")])
     rows.append(back("owner:bookings"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
