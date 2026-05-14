@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from telegram import Bot
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 import config
 from database.queries.bookings import list_active_expired, list_active_bookings
 from database.queries.channels import get_channel
@@ -15,6 +15,18 @@ EXISTENCE_CHECK_CONCURRENCY = 8
 def _probe_target():
     return config.SUPERADMIN_IDS[0] if config.SUPERADMIN_IDS else None
 
+
+def _rating_keyboard(booking_id):
+    row = [
+        InlineKeyboardButton("\u2b50", callback_data=f"adv:rate:{booking_id}:1"),
+        InlineKeyboardButton("\u2b50", callback_data=f"adv:rate:{booking_id}:2"),
+        InlineKeyboardButton("\u2b50", callback_data=f"adv:rate:{booking_id}:3"),
+        InlineKeyboardButton("\u2b50", callback_data=f"adv:rate:{booking_id}:4"),
+        InlineKeyboardButton("\u2b50", callback_data=f"adv:rate:{booking_id}:5"),
+    ]
+    return InlineKeyboardMarkup([row])
+
+
 async def process_expired(bot: Bot):
     rows = await list_active_expired()
     for b in rows:
@@ -27,10 +39,11 @@ async def process_expired(bot: Bot):
             dtype = "scheduled" if ok else "message_lost"
             refund, owner_earn, commission = await settle_booking(b["booking_id"], dtype)
             await notify(bot, b["advertiser_id"], "post_completed",
-                f"✅ <b>Ad completed</b>\nBooking: <code>{b['booking_ref']}</code>\nChannel: {ch['title']}\n💰 Credits used: {b['total_credits_charged']-refund}\n" + (f"🔁 Refund: {refund} credits" if refund>0 else ""),
-                booking_id=b["booking_id"])
+                f"\u2705 <b>Ad completed</b>\nBooking: <code>{b['booking_ref']}</code>\nChannel: {ch['title']}\n\U0001f4b0 Credits used: {b['total_credits_charged']-refund}\n" + (f"\U0001f501 Refund: {refund} credits" if refund>0 else "") + "\n\n\u2b50 <b>Rate this channel:</b>",
+                booking_id=b["booking_id"],
+                reply_markup=_rating_keyboard(b["booking_id"]))
             await notify(bot, b["owner_id"], "post_completed",
-                f"✅ <b>Booking completed</b>\nBooking: <code>{b['booking_ref']}</code>\nChannel: {ch['title']}\n💰 You earned: {owner_earn} credits",
+                f"\u2705 <b>Booking completed</b>\nBooking: <code>{b['booking_ref']}</code>\nChannel: {ch['title']}\n\U0001f4b0 You earned: {owner_earn} credits",
                 booking_id=b["booking_id"])
         except Exception as e:
             log.exception("expired processing failed for booking %s: %s", b.get("booking_id"), e)
@@ -43,11 +56,6 @@ async def _check_one_booking(bot: Bot, b: dict, target):
         if sched is not None:
             if sched.tzinfo is None:
                 sched = sched.replace(tzinfo=timezone.utc)
-            # Skip bookings whose scheduled deletion is imminent / already past.
-            # process_expired() owns those and will mark them as 'scheduled' completions.
-            # Without this guard, the existence-probe loop races with process_expired,
-            # finds the just-deleted message and falsely fires the
-            # "ad removed early by channel owner" notification.
             if datetime.now(timezone.utc) >= sched - timedelta(seconds=90):
                 return False
         ch = await get_channel(b["channel_id"])
@@ -65,15 +73,15 @@ async def _check_one_booking(bot: Bot, b: dict, target):
         refund, owner_earn, _ = await settle_booking(b["booking_id"], "owner_deleted")
         try:
             await notify(bot, b["advertiser_id"], "owner_deleted_post",
-                f"⚠️ <b>Your ad was removed early by the channel owner</b>\n"
+                f"\u26a0\ufe0f <b>Your ad was removed early by the channel owner</b>\n"
                 f"Booking: <code>{b['booking_ref']}</code>\nChannel: {ch['title']}\n"
-                f"💰 Full refund: {refund} credits returned to your wallet.",
+                f"\U0001f4b0 Full refund: {refund} credits returned to your wallet.",
                 booking_id=b["booking_id"])
         except Exception as e:
             log.warning("notify advertiser failed for %s: %s", b.get("booking_id"), e)
         try:
             await notify(bot, b["owner_id"], "owner_deleted_post",
-                f"ℹ️ Booking <code>{b['booking_ref']}</code> on {ch['title']} was no longer present. "
+                f"\u2139\ufe0f Booking <code>{b['booking_ref']}</code> on {ch['title']} was no longer present. "
                 f"The advertiser was fully refunded. Repeated early deletions affect your reliability score.",
                 booking_id=b["booking_id"])
         except Exception as e:
