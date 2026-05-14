@@ -46,6 +46,7 @@ async def channel_manage(update: Update, context: ContextTypes.DEFAULT_TYPE):
            f"⬐ {c['rating']:.1f} ({c['rating_count']})")
     pause_label = "▶️ Resume Listing" if c["is_paused"] else "⏸️ Pause Listing"
     rows = [
+        [("⚙️ Edit Settings", f"owner:ch:edit:{cid}")],
         [("👁 Refresh Stats", f"owner:ch:refresh:{cid}")],
         [(pause_label, f"owner:ch:pause:{cid}")],
         [("🗐️ Remove Channel", f"owner:ch:rm:{cid}")],
