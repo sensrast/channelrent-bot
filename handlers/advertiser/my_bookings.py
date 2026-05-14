@@ -19,6 +19,16 @@ async def _reconcile_active(bot, booking):
     if not booking or booking["status"] != "active" or not booking.get("telegram_message_id"):
         return False
     try:
+        from datetime import datetime, timezone, timedelta
+        sched = booking.get("scheduled_delete_at")
+        if sched is not None:
+            if sched.tzinfo is None:
+                sched = sched.replace(tzinfo=timezone.utc)
+            # If the scheduled deletion is imminent or already past, let the
+            # scheduler's process_expired() handle it as a normal completion.
+            # Otherwise we race and falsely tag a clean expiry as "removed early".
+            if datetime.now(timezone.utc) >= sched - timedelta(seconds=90):
+                return False
         ch = await get_channel(booking["channel_id"])
         if not ch:
             return False
