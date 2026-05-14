@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
@@ -36,7 +37,10 @@ async def _safe_pin(bot: Bot, chat_id, message_id):
     except Exception as e:
         log.debug("pin skipped for %s/%s: %s", chat_id, message_id, e)
         return
-    for delta in (1, 2):
+    # Telegram posts a service "pinned message" notification right after the pin.
+    # Give it a moment to land, then sweep nearby message ids to remove it.
+    await asyncio.sleep(0.6)
+    for delta in (1, 2, 3, 4, 5):
         try:
             await bot.delete_message(chat_id=chat_id, message_id=message_id + delta)
         except Exception:
@@ -97,19 +101,14 @@ def _is_deleted_error(text):
 async def message_exists(bot: Bot, from_chat_id, message_id, probe_chat_id=None, inline_buttons_json=None):
     """Reliably determine whether the channel post is still alive.
 
-    Probe order (strongest first):
-      1) copyMessage to superadmin DM - immediate "copy not found" when deleted.
-      2) forwardMessage to superadmin DM - similar strong signal.
-      3) editMessageReplyMarkup (same markup) - non-destructive ping.
-      4) unpin+ re-pin - last resort.
+    Uses ONLY non-destructive edit_message_reply_markup probing. We do NOT
+    re-pin the message here, because re-pinning produces a fresh service
+    "pinned message" notification every probe cycle, which spams the channel.
 
     Returns True (alive) on inconclusive errors so we never refund a user
-    from a transient Telegram error. Deletion is only reported when a
+    from a transient Telegram error. Deletion is only reported when the
     probe returns a strong 'not found' signal.
     """
-    # NOTE: copy/forward probes to admin DM were removed - they spammed the admin
-    # with every active promotion message every few seconds. We now rely solely on
-    # non-destructive edit_message_reply_markup probing below.
     _ = probe_chat_id  # kept for backward-compatible signature
     markup = _buttons(inline_buttons_json)
     try:
@@ -126,22 +125,4 @@ async def message_exists(bot: Bot, from_chat_id, message_id, probe_chat_id=None,
         pass
     except TelegramError as e:
         log.debug("edit-probe telegram err: %s", e)
-
-    try:
-        await bot.unpin_chat_message(chat_id=from_chat_id, message_id=message_id)
-        try:
-            await bot.pin_chat_message(chat_id=from_chat_id, message_id=message_id, disable_notification=True)
-        except Exception:
-            pass
-        return True
-    except BadRequest as e:
-        es = str(e).lower()
-        if "not pinned" in es or "is not pinned" in es or "not modified" in es:
-            return True
-        if _is_deleted_error(es):
-            return False
-    except Forbidden:
-        pass
-    except TelegramError:
-        pass
     return True
