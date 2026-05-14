@@ -130,10 +130,31 @@ async def approve_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         pass
         except Exception:
             post_url = None
-        approve_markup = None
+        join_link = None
+        try:
+            chat_id_for_invite = b.get("telegram_chat_id")
+            if chat_id_for_invite is not None:
+                try:
+                    inv = await context.bot.create_chat_invite_link(
+                        chat_id=chat_id_for_invite,
+                        creates_join_request=True,
+                        name=f"Booking {b['booking_ref']}"[:32],
+                    )
+                    join_link = getattr(inv, "invite_link", None) or (inv.get("invite_link") if isinstance(inv, dict) else None)
+                except Exception as _e:
+                    log.warning("create approval invite failed: %s", _e)
+                    join_link = None
+        except Exception:
+            join_link = None
+        approve_rows = []
         if post_url:
+            approve_rows.append([("🔗 View your post", post_url, "url")])
+        if join_link:
+            approve_rows.append([("➕ Join Channel", join_link, "url")])
+        approve_markup = None
+        if approve_rows:
             try:
-                approve_markup = kb_url([[("🔗 View your post", post_url, "url")]])
+                approve_markup = kb_url(approve_rows)
             except Exception:
                 approve_markup = None
         await notify(context.bot, b["advertiser_id"], "booking_approved",
