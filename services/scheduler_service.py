@@ -81,24 +81,14 @@ def start(bot):
     scheduler = AsyncIOScheduler(timezone="UTC")
 
     scheduler.add_job(process_expired, IntervalTrigger(seconds=min(30, config.DELETION_CHECK_INTERVAL_SECONDS)), args=[bot], id="deletion", max_instances=1)
-    scheduler.add_job(check_message_existence, IntervalTrigger(seconds=EXISTENCE_LOOP_INTERVAL_SECONDS), args=[bot], id="existence_check", max_instances=1, coalesce=True)
     scheduler.add_job(_pending_reminder, IntervalTrigger(hours=2), args=[bot], id="pending_reminder", max_instances=1)
     scheduler.add_job(_low_credits_alert, IntervalTrigger(hours=6), args=[bot], id="low_credits", max_instances=1)
     scheduler.add_job(_cleanup_inactive_channels, IntervalTrigger(hours=12), args=[bot], id="inactive_cleanup", max_instances=1)
 
     scheduler.start()
-    log.info("Scheduler started (existence_check every %ss)", EXISTENCE_LOOP_INTERVAL_SECONDS)
+    log.info("Scheduler started")
 
-    try:
-        if _existence_task is None or _existence_task.done():
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = asyncio.get_event_loop()
-            _existence_task = loop.create_task(_existence_loop(bot))
-            log.info("Existence-detection asyncio loop scheduled")
-    except Exception as e:
-        log.exception("failed to schedule existence asyncio loop: %s", e)
+    log.info("Existence-detection loop disabled (admin DM spam + premature settlement fix)")
 
     return scheduler
 
