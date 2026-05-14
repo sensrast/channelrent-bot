@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -13,6 +14,8 @@ from database.pool import db
 log = logging.getLogger(__name__)
 
 scheduler: AsyncIOScheduler | None = None
+_existence_task: asyncio.Task | None = None
+EXISTENCE_LOOP_INTERVAL_SECONDS = 5
 
 async def _pending_reminder(bot):
     rows = await list_old_pending_approval(4)
@@ -59,22 +62,53 @@ async def _cleanup_inactive_channels(bot):
         except Exception as e:
             log.debug("inactive cleanup err %s: %s", r["channel_id"], e)
 
+
+async def _existence_loop(bot):
+    log.info("existence_loop started (interval=%ss)", EXISTENCE_LOOP_INTERVAL_SECONDS)
+    while True:
+        try:
+            await check_message_existence(bot)
+        except asyncio.CancelledError:
+            log.info("existence_loop cancelled")
+            raise
+        except Exception as e:
+            log.exception("existence_loop iteration error: %s", e)
+        try:
+            await asyncio.sleep(EXISTENCE_LOOP_INTERVAL_SECONDS)
+        except asyncio.CancelledError:
+            raise
+
+
 def start(bot):
-    global scheduler
+    global scheduler, _existence_task
     scheduler = AsyncIOScheduler(timezone="UTC")
 
     scheduler.add_job(process_expired, IntervalTrigger(seconds=min(30, config.DELETION_CHECK_INTERVAL_SECONDS)), args=[bot], id="deletion", max_instances=1)
-    scheduler.add_job(check_message_existence, IntervalTrigger(seconds=10), args=[bot], id="exists", max_instances=1)
     scheduler.add_job(_pending_reminder, IntervalTrigger(hours=2), args=[bot], id="pending_reminder", max_instances=1)
     scheduler.add_job(_low_credits_alert, IntervalTrigger(hours=6), args=[bot], id="low_credits", max_instances=1)
     scheduler.add_job(_cleanup_inactive_channels, IntervalTrigger(hours=12), args=[bot], id="inactive_cleanup", max_instances=1)
 
     scheduler.start()
     log.info("Scheduler started")
+
+    try:
+        loop = asyncio.get_event_loop()
+        if _existence_task is None or _existence_task.done():
+            _existence_task = loop.create_task(_existence_loop(bot))
+            log.info("Existence-detection loop scheduled")
+    except Exception as e:
+        log.exception("failed to schedule existence loop: %s", e)
+
     return scheduler
 
 def stop():
-    global scheduler
+    global scheduler, _existence_task
+    if _existence_task and not _existence_task.done():
+        try:
+            _existence_task.cancel()
+        except Exception:
+            pass
+        _existence_task = None
     if scheduler:
         scheduler.shutdown(wait=False)
         scheduler = None
