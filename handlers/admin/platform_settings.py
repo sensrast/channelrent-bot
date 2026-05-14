@@ -146,10 +146,36 @@ async def set_finish(update, context):
         reply_markup=kb([back(back_to)]))
     return ConversationHandler.END
 
+async def set_cancel(update, context):
+    context.user_data.pop("set_key", None)
+    data = update.callback_query.data if update.callback_query else ""
+    try:
+        if data == "admin:settings:price":
+            await pricing_settings_panel(update, context)
+        elif data == "admin:settings:forcesub":
+            await forcesub_panel(update, context)
+        elif data == "admin:settings":
+            await settings_panel(update, context)
+        elif data == "admin:panel":
+            from handlers.admin.dashboard import admin_panel
+            await admin_panel(update, context)
+        elif data == "home":
+            from handlers.callbacks import home_handler
+            await home_handler(update, context)
+        else:
+            await update.callback_query.answer()
+    except Exception:
+        try: await update.callback_query.answer()
+        except Exception: pass
+    return ConversationHandler.END
+
 def build_settings_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(set_start, pattern=r"^admin:set:[a-z0-9_]+$")],
-        states={EDIT:[MessageHandler(set_finish, filters.TEXT & ~filters.COMMAND)]},
+        states={EDIT:[
+            MessageHandler(filters.TEXT & ~filters.COMMAND, set_finish),
+            CallbackQueryHandler(set_cancel, pattern=r"^(admin:settings(:price|:forcesub)?|admin:panel|home)$"),
+        ]},
         fallbacks=[_CmdHandler("cancel", _univ_cancel)],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
