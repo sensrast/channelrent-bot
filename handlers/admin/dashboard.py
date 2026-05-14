@@ -29,6 +29,7 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [("📋 Bookings","admin:bookings"),("💰 Financial","admin:finance")],
         [("⚙️ Pricing","admin:pricing"),("🔧 Settings","admin:settings")],
         [("📊 Analytics","admin:analytics"),("📢 Broadcast","admin:bcast")],
+        [("📨 Join Requests","admin:settings:joinreq")],
         back("home"),
     ]
     await send(txt, parse_mode="HTML", reply_markup=kb(rows))

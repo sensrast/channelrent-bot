@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from telegram import Update
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ChatJoinRequestHandler
 from aiohttp import web
 
 import config
@@ -28,6 +28,7 @@ from handlers.admin.platform_settings import toggle_setting
 from handlers.admin.pricing_engine import build_pricing_conv
 from handlers.admin.dashboard import admin_panel
 from handlers.advertiser.my_bookings import my_bookings
+from services.join_request_service import handle_join_request
 from handlers.advertiser.browse import browse_panel
 from handlers.owner.dashboard import my_channels
 
@@ -97,6 +98,7 @@ def build_app_obj():
     app.add_handler(CommandHandler("browse", lambda u,c: u.message.reply_text("Open /start menu → 🔍 Browse Channels")))
     app.add_handler(CommandHandler("cancel", universal_cancel))
 
+    app.add_handler(ChatJoinRequestHandler(handle_join_request))
     app.add_handler(CallbackQueryHandler(callback_router))
 
     async def err_handler(update, context):

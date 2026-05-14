@@ -23,7 +23,7 @@ from handlers.admin.financial import (finance_panel, topup_list, topup_view, top
 from handlers.admin.user_mgmt import users_panel, user_view, user_ban_toggle
 from handlers.admin.channel_mgmt import channels_panel, channel_view as admin_channel_view, channel_suspend
 from handlers.admin.booking_mgmt import bookings_panel
-from handlers.admin.platform_settings import settings_panel, pricing_settings_panel, forcesub_panel
+from handlers.admin.platform_settings import settings_panel, pricing_settings_panel, forcesub_panel, joinreq_panel
 from handlers.admin.pricing_engine import pricing_panel, pricing_recalc
 
 log = logging.getLogger(__name__)
@@ -85,6 +85,7 @@ ROUTES = {
     "admin:settings": settings_panel,
     "admin:settings:price": pricing_settings_panel,
     "admin:settings:forcesub": forcesub_panel,
+    "admin:settings:joinreq": joinreq_panel,
     "common:fsub:verify": force_sub_verify,
     "admin:pricing": pricing_panel,
     "admin:pricing:recalc": pricing_recalc,
