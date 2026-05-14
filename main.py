@@ -105,6 +105,8 @@ def build_app_obj():
 
 async def run_webhook(app: Application):
     await app.initialize()
+    if app.post_init:
+        await app.post_init(app)
     await app.start()
     url = f"{config.WEBHOOK_URL}/webhook"
     await app.bot.set_webhook(url=url, secret_token=config.WEBHOOK_SECRET, allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
@@ -125,6 +127,8 @@ async def run_webhook(app: Application):
 
 async def run_polling(app: Application):
     await app.initialize()
+    if app.post_init:
+        await app.post_init(app)
     aio = build_app(app)
     runner = web.AppRunner(aio); await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", config.PORT); await site.start()
