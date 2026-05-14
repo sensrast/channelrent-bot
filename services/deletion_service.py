@@ -38,6 +38,18 @@ async def process_expired(bot: Bot):
 
 async def _check_one_booking(bot: Bot, b: dict, target):
     try:
+        from datetime import datetime, timezone, timedelta
+        sched = b.get("scheduled_delete_at")
+        if sched is not None:
+            if sched.tzinfo is None:
+                sched = sched.replace(tzinfo=timezone.utc)
+            # Skip bookings whose scheduled deletion is imminent / already past.
+            # process_expired() owns those and will mark them as 'scheduled' completions.
+            # Without this guard, the existence-probe loop races with process_expired,
+            # finds the just-deleted message and falsely fires the
+            # "ad removed early by channel owner" notification.
+            if datetime.now(timezone.utc) >= sched - timedelta(seconds=90):
+                return False
         ch = await get_channel(b["channel_id"])
         if not ch or not b["telegram_message_id"]:
             return False
