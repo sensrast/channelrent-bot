@@ -81,7 +81,7 @@ async def channel_edit_allowed_start(update: Update, context: ContextTypes.DEFAU
         return ConversationHandler.END
     context.user_data["edit_ch_id"] = cid
     await q.edit_message_text(
-        f"✐️ Send the new ALLOWED content description (max 500 chars).\n\n"
+        f"✅ Send the new ALLOWED content description (max 500 chars).\n\n"
         f"Current: {c['allowed_content'] or '—'}\n\n/cancel to abort.")
     return EDIT_ALLOWED
 
@@ -95,7 +95,7 @@ async def channel_edit_allowed_save(update: Update, context: ContextTypes.DEFAUL
         return ConversationHandler.END
     await update_channel(cid, allowed_content=update.message.text[:500])
     await update.message.reply_text("✅ Allowed content updated.", reply_markup=kb([
-        [("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
+        [("↩ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     return ConversationHandler.END
 
@@ -109,7 +109,7 @@ async def channel_edit_forbidden_start(update: Update, context: ContextTypes.DEF
         return ConversationHandler.END
     context.user_data["edit_ch_id"] = cid
     await q.edit_message_text(
-        f"✐️ Send the new FORBIDDEN content description (max 500 chars).\n\n"
+        f"❌ Send the new FORBIDDEN content description (max 500 chars).\n\n"
         f"Current: {c['forbidden_content'] or '—'}\n\n/cancel to abort.")
     return EDIT_FORBIDDEN
 
@@ -123,7 +123,7 @@ async def channel_edit_forbidden_save(update: Update, context: ContextTypes.DEFA
         return ConversationHandler.END
     await update_channel(cid, forbidden_content=update.message.text[:500])
     await update.message.reply_text("✅ Forbidden content updated.", reply_markup=kb([
-        [("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
+        [("↩ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     return ConversationHandler.END
 
@@ -143,7 +143,7 @@ async def channel_edit_price_start(update: Update, context: ContextTypes.DEFAULT
     await q.edit_message_text(
         f"💰 Current price: <b>{c['final_price_credits']} cr/hr</b>\n"
         f"Suggested (base): {sp} cr/hr\n\n"
-        f"Enter a new price between <b>{lo}</b> and <b>{hi}</b> cr/hr (����50% of base).\n\n/cancel to abort.",
+        f"Enter a new price between <b>{lo}</b> and <b>{hi}</b> cr/hr (±50% of base).\n\n/cancel to abort.",
         parse_mode="HTML")
     return EDIT_PRICE
 
@@ -164,7 +164,7 @@ async def channel_edit_price_save(update: Update, context: ContextTypes.DEFAULT_
     await update_channel(cid, final_price_credits=final, price_per_hour_credits=final, owner_custom_price=val)
     await update.message.reply_text(
         f"✅ Price updated to <b>{final} cr/hr</b>.", parse_mode="HTML",
-        reply_markup=kb([[("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
+        reply_markup=kb([[("↩ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     context.user_data.pop("edit_ch_sp", None)
     return ConversationHandler.END
