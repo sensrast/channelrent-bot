@@ -13,31 +13,20 @@ log = logging.getLogger(__name__)
 EDIT_ALLOWED, EDIT_FORBIDDEN, EDIT_PRICE = range(3)
 
 
-async def channel_edit_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _back_to_manage(update, context, cid):
+    from handlers.owner.dashboard import channel_manage
     q = update.callback_query
-    await q.answer()
+    if q is not None:
+        q.data = f"owner:ch:{cid}"
+        await channel_manage(update, context)
+
+
+async def channel_edit_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from handlers.owner.dashboard import channel_manage
+    q = update.callback_query
     cid = int(q.data.split(":")[3])
-    c = await get_channel(cid)
-    if not c or c["owner_id"] != q.from_user.id:
-        await q.edit_message_text("Not found.", reply_markup=kb([back("owner:channels")]))
-        return
-    apv_label = "Auto" if c["auto_approve"] else "Manual"
-    cat_name = f"{c.get('category_emoji') or ''} {c.get('category_name') or 'Not set'}".strip()
-    txt = (f"⚙️ <b>Edit: {c['title']}</b>\n\n"
-           f"📂 Category: {cat_name}\n"
-           f"💰 Price: <b>{c['final_price_credits']} cr/hr</b>\n"
-           f"🔐 Approval: <b>{apv_label}</b>\n\n"
-           f"✅ Allowed: {c['allowed_content'] or '—'}\n"
-           f"❌ Forbidden: {c['forbidden_content'] or '—'}")
-    rows = [
-        [("📂 Change Category", f"owner:ch:editcat:{cid}")],
-        [("💰 Change Price", f"owner:ch:editprice:{cid}")],
-        [(f"🔐 Approval: {apv_label} (toggle)", f"owner:ch:toggleapv:{cid}")],
-        [("✅ Edit Allowed Content", f"owner:ch:editallowed:{cid}")],
-        [("❌ Edit Forbidden Content", f"owner:ch:editforbidden:{cid}")],
-        back(f"owner:ch:{cid}"),
-    ]
-    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
 
 
 async def channel_edit_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -55,7 +44,7 @@ async def channel_edit_category(update: Update, context: ContextTypes.DEFAULT_TY
             rows.append(cur); cur = []
     if cur:
         rows.append(cur)
-    rows.append(back(f"owner:ch:edit:{cid}"))
+    rows.append(back(f"owner:ch:{cid}"))
     await q.edit_message_text("📂 Pick a new category:", reply_markup=kb(rows))
 
 
@@ -68,8 +57,7 @@ async def channel_set_category(update: Update, context: ContextTypes.DEFAULT_TYP
     if not c or c["owner_id"] != q.from_user.id:
         return
     await update_channel(cid, category_id=cat_id)
-    q.data = f"owner:ch:edit:{cid}"
-    await channel_edit_menu(update, context)
+    await _back_to_manage(update, context, cid)
 
 
 async def channel_toggle_approval(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -81,8 +69,7 @@ async def channel_toggle_approval(update: Update, context: ContextTypes.DEFAULT_
         return
     new_auto = not c["auto_approve"]
     await update_channel(cid, auto_approve=new_auto, requires_approval=not new_auto)
-    q.data = f"owner:ch:edit:{cid}"
-    await channel_edit_menu(update, context)
+    await _back_to_manage(update, context, cid)
 
 
 async def channel_edit_allowed_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -94,7 +81,7 @@ async def channel_edit_allowed_start(update: Update, context: ContextTypes.DEFAU
         return ConversationHandler.END
     context.user_data["edit_ch_id"] = cid
     await q.edit_message_text(
-        f"✏️ Send the new ALLOWED content description (max 500 chars).\n\n"
+        f"✐️ Send the new ALLOWED content description (max 500 chars).\n\n"
         f"Current: {c['allowed_content'] or '—'}\n\n/cancel to abort.")
     return EDIT_ALLOWED
 
@@ -108,7 +95,7 @@ async def channel_edit_allowed_save(update: Update, context: ContextTypes.DEFAUL
         return ConversationHandler.END
     await update_channel(cid, allowed_content=update.message.text[:500])
     await update.message.reply_text("✅ Allowed content updated.", reply_markup=kb([
-        [("⚙️ Back to Edit", f"owner:ch:edit:{cid}")], back(f"owner:ch:{cid}")]))
+        [("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     return ConversationHandler.END
 
@@ -122,7 +109,7 @@ async def channel_edit_forbidden_start(update: Update, context: ContextTypes.DEF
         return ConversationHandler.END
     context.user_data["edit_ch_id"] = cid
     await q.edit_message_text(
-        f"✏️ Send the new FORBIDDEN content description (max 500 chars).\n\n"
+        f"✐️ Send the new FORBIDDEN content description (max 500 chars).\n\n"
         f"Current: {c['forbidden_content'] or '—'}\n\n/cancel to abort.")
     return EDIT_FORBIDDEN
 
@@ -136,7 +123,7 @@ async def channel_edit_forbidden_save(update: Update, context: ContextTypes.DEFA
         return ConversationHandler.END
     await update_channel(cid, forbidden_content=update.message.text[:500])
     await update.message.reply_text("✅ Forbidden content updated.", reply_markup=kb([
-        [("⚙️ Back to Edit", f"owner:ch:edit:{cid}")], back(f"owner:ch:{cid}")]))
+        [("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     return ConversationHandler.END
 
@@ -156,7 +143,7 @@ async def channel_edit_price_start(update: Update, context: ContextTypes.DEFAULT
     await q.edit_message_text(
         f"💰 Current price: <b>{c['final_price_credits']} cr/hr</b>\n"
         f"Suggested (base): {sp} cr/hr\n\n"
-        f"Enter a new price between <b>{lo}</b> and <b>{hi}</b> cr/hr (±50% of base).\n\n/cancel to abort.",
+        f"Enter a new price between <b>{lo}</b> and <b>{hi}</b> cr/hr (����50% of base).\n\n/cancel to abort.",
         parse_mode="HTML")
     return EDIT_PRICE
 
@@ -177,7 +164,7 @@ async def channel_edit_price_save(update: Update, context: ContextTypes.DEFAULT_
     await update_channel(cid, final_price_credits=final, price_per_hour_credits=final, owner_custom_price=val)
     await update.message.reply_text(
         f"✅ Price updated to <b>{final} cr/hr</b>.", parse_mode="HTML",
-        reply_markup=kb([[("⚙️ Back to Edit", f"owner:ch:edit:{cid}")], back(f"owner:ch:{cid}")]))
+        reply_markup=kb([[("⚖️ Back to Channel", f"owner:ch:{cid}")], back("owner:channels")]))
     context.user_data.pop("edit_ch_id", None)
     context.user_data.pop("edit_ch_sp", None)
     return ConversationHandler.END
@@ -206,7 +193,7 @@ def build_channel_edit_conv():
         },
         fallbacks=[
             CommandHandler("cancel", _cancel),
-            CallbackQueryHandler(lambda u, c: ConversationHandler.END, pattern=r"^(home|owner:channels|owner:ch:\d+|owner:ch:edit:\d+)$"),
+            CallbackQueryHandler(lambda u, c: ConversationHandler.END, pattern=r"^(home|owner:channels|owner:ch:\d+)$"),
         ],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
