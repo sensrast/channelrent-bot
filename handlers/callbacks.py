@@ -17,6 +17,7 @@ from handlers.advertiser.my_bookings import my_bookings, view_booking, delete_ea
 from handlers.advertiser.rating import submit_rating
 from handlers.owner.dashboard import (my_channels, channel_manage, channel_pause, channel_refresh, channel_remove,
                                       earnings_panel, incoming_bookings, view_owner_booking)
+from handlers.owner.channel_edit import (channel_edit_menu, channel_edit_category, channel_set_category, channel_toggle_approval)
 from handlers.admin.dashboard import admin_panel, analytics_panel
 from handlers.admin.financial import (finance_panel, topup_list, topup_view, topup_approve, topup_reject,
                                        payout_list, payout_view)
@@ -101,6 +102,10 @@ PREFIX_ROUTES = [
     ("adv:bk:delgo:", delete_early_go),
     ("adv:bk:cancel:", cancel_pending),
     ("adv:bk:", view_booking),
+    ("owner:ch:setcat:", channel_set_category),
+    ("owner:ch:editcat:", channel_edit_category),
+    ("owner:ch:toggleapv:", channel_toggle_approval),
+    ("owner:ch:edit:", channel_edit_menu),
     ("owner:ch:refresh:", channel_refresh),
     ("owner:ch:pause:", channel_pause),
     ("owner:ch:rm:", channel_remove),
