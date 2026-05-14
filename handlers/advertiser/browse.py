@@ -42,17 +42,7 @@ async def browse_panel(update, context, page=None):
     for c in rows:
         title = c['title'][:22]
         subs_label = fmt_subs_short(c.get('subscriber_count') or 0)
-        is_private = not c.get('username')
-        view_link = None
-        try:
-            view_link = await get_channel_link(c, bot=context.bot, require_approval=is_private)
-        except Exception:
-            view_link = None
-        row_btns = [(f"\U0001f4cb {title} ({subs_label})", f"adv:ch:{c['channel_id']}", "cd")]
-        if view_link:
-            label = "\U0001f517 View (Require Approval)" if is_private else "\U0001f517 View Channel"
-            row_btns.append((label, view_link, "url"))
-        kbrows.append(row_btns)
+        kbrows.append([(f"\U0001f4cb {title} ({subs_label})", f"adv:ch:{c['channel_id']}", "cd")])
     kbrows.append([("\U0001f39b\ufe0f Filters","adv:filters","cd"),("\U0001f501 Sort","adv:sort","cd")])
     pgrow = []
     if page > 0: pgrow.append(("\u25c0\ufe0f Prev", f"adv:browse:p:{page-1}", "cd"))
