@@ -1,1 +1,154 @@
-ZnJvbSB0ZWxlZ3JhbSBpbXBvcnQgVXBkYXRlCmZyb20gdGVsZWdyYW0uZXh0IGltcG9ydCBDb250ZXh0VHlwZXMKZnJvbSB1dGlscy5rZXlib2FyZHMgaW1wb3J0IGtiLCBiYWNrCmZyb20gdXRpbHMuZm9ybWF0dGVycyBpbXBvcnQgZm10X2NyZWRpdHMsIGFjdGl2aXR5X2Vtb2ppCmZyb20gZGF0YWJhc2UucG9vbCBpbXBvcnQgZGIKZnJvbSBkYXRhYmFzZS5xdWVyaWVzLmNoYW5uZWxzIGltcG9ydCBsaXN0X293bmVyX2NoYW5uZWxzLCBnZXRfY2hhbm5lbCwgdXBkYXRlX2NoYW5uZWwKZnJvbSBkYXRhYmFzZS5xdWVyaWVzLmJvb2tpbmdzIGltcG9ydCBsaXN0X293bmVyX2Jvb2tpbmdzLCBnZXRfYm9va2luZwpmcm9tIGRhdGFiYXNlLnF1ZXJpZXMudXNlcnMgaW1wb3J0IGdldF91c2VyCgphc3luYyBkZWYgbXlfY2hhbm5lbHModXBkYXRlOiBVcGRhdGUsIGNvbnRleHQ6IENvbnRleHRUeXBlcy5ERUZBVUxUX1RZUEUpOgogICAgcSA9IHVwZGF0ZS5jYWxsYmFja19xdWVyeQogICAgYXdhaXQgcS5hbnN3ZXIoKQogICAgcm93cyA9IGF3YWl0IGxpc3Rfb3duZXJfY2hhbm5lbHMocS5mcm9tX3VzZXIuaWQpCiAgICBpZiBub3Qgcm93czoKICAgICAgICBhd2FpdCBxLmVkaXRfbWVzc2FnZV90ZXh0KCLwn5OiIDxiPk15IENoYW5uZWxzPC9iPlxuXG5ObyBjaGFubmVscyB5ZXQuIiwKICAgICAgICAgICAgcGFyc2VfbW9kZT0iSFRNTCIsIHJlcGx5X21hcmt1cD1rYihbWygi4pejIEFkZCBDaGFubmVsIiwib3duZXI6YWRkIildLGJhY2soImhvbWUiKV0pKQogICAgICAgIHJldHVybgogICAgdHh0ID0gZiLwn5OiIDxiPk15IENoYW5uZWxzICh7bGVuKHJvd3MpfSk8L2I+XG4iCiAgICBrYl9yb3dzID0gW10KICAgIGZvciBjIGluIHJvd3NbOjEwXToKICAgICAgICBzdGF0ZSA9ICLwn5+iIEFjdGl2ZSIgaWYgY1siaXNfbGlzdGVkIl0gYW5kIG5vdCBjWyJpc19wYXVzZWQiXSBhbmQgbm90IGNbImlzX3N1c3BlbmRlZCJdIGVsc2UgIvCfn6EgUGF1c2VkIiBpZiBjWyJpc19wYXVzZWQiXSBlbHNlICLwn5+gIE9mZiIKICAgICAgICB0eHQgKz0gKGYiXG7ilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIFcbvCfk6IgPGI+e2NbJ3RpdGxlJ119PC9iPlxuIgogICAgICAgICAgICAgICAgZiLwn5GlIHtmbXRfY3JlZGl0cyhjWydzdWJzY3JpYmVyX2NvdW50J10pfSDigKIge2FjdGl2aXR5X2Vtb2ppKGNbJ2FjdGl2aXR5X3RpZXInXSl9IHtjWydhY3Rpdml0eV90aWVyJ10udXBwZXIoKX1cbiIKICAgICAgICAgICAgICAgIGYi8J+SsCB7Y1snZmluYWxfcHJpY2VfY3JlZGl0cyddfSBjci9ociDigKIge3N0YXRlfVxuIgogICAgICAgICAgICAgICAgZiLirJAge2NbJ3JhdGluZyddOi4xZn0gKHtjWydyYXRpbmdfY291bnQnXX0pIikKICAgICAgICBrYl9yb3dzLmFwcGVuZChbKGYi4pqI77iPIHtjWyd0aXRsZSddWzoyNV19IiwgZiJvd25lcjpjaDp7Y1snY2hhbm5lbF9pZCddfSIpXSkKICAgIGtiX3Jvd3MuYXBwZW5kKFsoIuKclyBBZGQgQ2hhbm5lbCIsIm93bmVyOmFkZCIpXSkKICAgIGtiX3Jvd3MuYXBwZW5kKGJhY2soImhvbWUiKSkKICAgIGF3YWl0IHEuZWRpdF9tZXNzYWdlX3RleHQodHh0LCBwYXJzZV9tb2RlPSJIVE1MIiwgcmVwbHlfbWFya3VwPWtiKGtiX3Jvd3MpKQoKYXN5bmMgZGVmIGNoYW5uZWxfbWFuYWdlKHVwZGF0ZTogVXBkYXRlLCBjb250ZXh0OiBDb250ZXh0VHlwZXMuREVGQVVMVF9UWVBFKToKICAgIHEgPSB1cGRhdGUuY2FsbGJhY2tfcXVlcnkKICAgIGF3YWl0IHEuYW5zd2VyKCkKICAgIGNpZCA9IGludChxLmRhdGEuc3BsaXQoIjoiKVsyXSkKICAgIGMgPSBhd2FpdCBnZXRfY2hhbm5lbChjaWQpCiAgICBpZiBub3QgYyBvciBjWyJvd25lcl9pZCJdICE9IHEuZnJvbV91c2VyLmlkOgogICAgICAgIGF3YWl0IHEuZWRpdF9tZXNzYWdlX3RleHQoIk5vdCBmb3VuZC4iLCByZXBseV9tYXJrdXA9a2IoW2JhY2soIm93bmVyOmNoYW5uZWxzIildKSkKICAgICAgICByZXR1cm4KICAgIGFwdl9sYWJlbCA9ICJBdXRvIiBpZiBjWyJhdXRvX2FwcHJvdmUiXSBlbHNlICJNYW51YWwiCiAgICBjYXRfbmFtZSA9IGYie2MuZ2V0KCdjYXRlZ29yeV9lbW9qaScpIG9yICcnfSB7Yy5nZXQoJ2NhdGVnb3J5X25hbWUnKSBvciAnTm90IHNldCd9Ii5zdHJpcCgpCiAgICB0eHQgPSAoZiLimpbvuI8gPGI+e2NbJ3RpdGxlJ119PC9iPlxuXG4iCiAgICAgICAgICAgZiLwn5GlIFN1YnNjcmliZXJzOiB7Zm10X2NyZWRpdHMoY1snc3Vic2NyaWJlcl9jb3VudCddKX1cbiIKICAgICAgICAgICBmIvCfkYHvuI8gQXZnIFZpZXdzOiB7Zm10X2NyZWRpdHMoY1snYXZnX3ZpZXdzXzI0aCddKX1cbiIKICAgICAgICAgICBmIns Place Holder Replaced Below }
+from telegram import Update
+from telegram.ext import ContextTypes
+from utils.keyboards import kb, back
+from utils.formatters import fmt_credits, activity_emoji
+from database.pool import db
+from database.queries.channels import list_owner_channels, get_channel, update_channel
+from database.queries.bookings import list_owner_bookings, get_booking
+from database.queries.users import get_user
+
+async def my_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    rows = await list_owner_channels(q.from_user.id)
+    if not rows:
+        await q.edit_message_text("📢 <b>My Channels</b>\n\nNo channels yet.",
+            parse_mode="HTML", reply_markup=kb([[("◣ Add Channel","owner:add")],back("home")]))
+        return
+    txt = f"📢 <b>My Channels ({len(rows)})</b>\n"
+    kb_rows = []
+    for c in rows[:10]:
+        state = "🟢 Active" if c["is_listed"] and not c["is_paused"] and not c["is_suspended"] else "🟡 Paused" if c["is_paused"] else "🟠 Off"
+        txt += (f"\n━━━━━━━━━━━━━━━\n📢 <b>{c['title']}</b>\n"
+                f"👥 {fmt_credits(c['subscriber_count'])} • {activity_emoji(c['activity_tier'])} {c['activity_tier'].upper()}\n"
+                f"💰 {c['final_price_credits']} cr/hr • {state}\n"
+                f"⬐ {c['rating']:.1f} ({c['rating_count']})")
+        kb_rows.append([(f"⚈️ {c['title'][:25]}", f"owner:ch:{c['channel_id']}")])
+    kb_rows.append([("✗ Add Channel","owner:add")])
+    kb_rows.append(back("home"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+async def channel_manage(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    cid = int(q.data.split(":")[2])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id:
+        await q.edit_message_text("Not found.", reply_markup=kb([back("owner:channels")]))
+        return
+    apv_label = "Auto" if c["auto_approve"] else "Manual"
+    cat_name = f"{c.get('category_emoji') or ''} {c.get('category_name') or 'Not set'}".strip()
+    txt = (f"⚖️ <b>{c['title']}</b>\n\n"
+           f"👥 Subscribers: {fmt_credits(c['subscriber_count'])}\n"
+           f"👁️ Avg Views: {fmt_credits(c['avg_views_24h'])}\n"
+           f"{activity_emoji(c['activity_tier'])} Activity: {c['activity_tier'].upper()} ({c['activity_score']}/100)\n"
+           f"📂 Category: {cat_name}\n"
+           f"💰 Rate: <b>{c['final_price_credits']} cr/hr</b>\n"
+           f"🔐 Approval: <b>{apv_label}</b>\n"
+           f"📋 Total bookings: {c['total_bookings']}\n"
+           f"💰 Revenue: {fmt_credits(c['total_revenue_credits'])} cr\n"
+           f"⬐ {c['rating']:.1f} ({c['rating_count']})\n\n"
+           f"✅ Allowed: {c['allowed_content'] or '—'}\n"
+           f"❌ Forbidden: {c['forbidden_content'] or '—'}")
+    pause_label = "▶️ Resume Listing" if c["is_paused"] else "⏸️ Pause Listing"
+    rows = [
+        [("📂 Change Category", f"owner:ch:editcat:{cid}")],
+        [("💰 Change Price", f"owner:ch:editprice:{cid}")],
+        [(f"🔐 Approval: {apv_label} (toggle)", f"owner:ch:toggleapv:{cid}")],
+        [("✅ Edit Allowed Content", f"owner:ch:editallowed:{cid}")],
+        [("❌ Edit Forbidden Content", f"owner:ch:editforbidden:{cid}")],
+        [("👁 Refresh Stats", f"owner:ch:refresh:{cid}")],
+        [(pause_label, f"owner:ch:pause:{cid}")],
+        [("🗑️ Remove Channel", f"owner:ch:rm:{cid}")],
+        back("owner:channels"),
+    ]
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+
+async def channel_pause(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer("Toggled")
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id:
+        return
+    await update_channel(cid, is_paused=not c["is_paused"])
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
+
+async def channel_refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer("Refreshing...")
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id: return
+    try:
+        from telegram.error import TelegramError
+        count = await context.bot.get_chat_member_count(c["telegram_chat_id"])
+        from services.pricing_engine import compute_activity, compute_price_per_hour
+        score, tier, eng = compute_activity(count, c["avg_views_24h"])
+        price = compute_price_per_hour(count, c["avg_views_24h"], tier)
+        await update_channel(cid, subscriber_count=count, activity_score=score, activity_tier=tier, engagement_rate=eng, final_price_credits=price, base_price_credits=price)
+    except Exception as e:
+        await q.answer(f"Failed: {e}", show_alert=True)
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
+
+async def channel_remove(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id: return
+    await update_channel(cid, is_listed=False, is_paused=True, is_active=False)
+    await q.edit_message_text(f"🗑️ {c['title']} delisted.", reply_markup=kb([back("owner:channels")]))
+
+async def earnings_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    user = await get_user(q.from_user.id)
+    try:
+        v = await db.fetchval("SELECT value FROM platform_settings WHERE key='min_payout_credits'")
+        min_payout = int(float(v)) if v is not None else 500
+    except Exception:
+        min_payout = 500
+    txt = (f"📈 <b>My Earnings</b>\n\n"
+           f"💎 Pending: <b>{fmt_credits(user['earnings_pending'])} cr</b>\n"
+           f"✅ Paid out: {fmt_credits(user['earnings_paid'])} cr\n\n"
+           f"Minimum payout: {min_payout} cr\n")
+    rows = [[("💸 Request Payout","owner:payout")], back("home")]
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+
+async def incoming_bookings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    rows = await list_owner_bookings(q.from_user.id, status_in=["pending_approval","active"], limit=15)
+    if not rows:
+        await q.edit_message_text("📋 <b>Incoming Bookings</b>\n\nNo active or pending bookings.",
+            parse_mode="HTML", reply_markup=kb([back("home")]))
+        return
+    txt = "📋 <b>Incoming Bookings</b>\n"
+    kb_rows = []
+    for b in rows:
+        txt += f"\n• <code>{b['booking_ref']}</code> • {b['status']} • {b['channel_title']}"
+        kb_rows.append([(f"📋 {b['booking_ref']}", f"owner:bk:{b['booking_id']}")])
+    kb_rows.append(back("home"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+async def view_owner_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    bid = int(q.data.split(":")[2])
+    b = await get_booking(bid)
+    if not b or b["owner_id"] != q.from_user.id:
+        await q.edit_message_text("Not found.", reply_markup=kb([back("owner:bookings")]))
+        return
+    from services.pricing_engine import commission_split
+    _, owner_earn = commission_split(b["total_credits_charged"])
+    txt = (f"📋 <b>{b['booking_ref']}</b>\n\nChannel: {b['channel_title']}\nDuration: {b['duration_hours']}h\n"
+           f"Status: {b['status']}\nYou'll earn (max): {owner_earn} cr")
+    rows = []
+    if b["status"] == "pending_approval":
+        rows.append([("👁️ Preview Ad", f"owner:prev:{bid}")])
+        rows.append([("✅ Approve", f"owner:apv:{bid}"), ("❌ Reject", f"owner:rej:{bid}")])
+    rows.append(back("owner:bookings"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
