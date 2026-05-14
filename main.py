@@ -25,6 +25,7 @@ from handlers.admin.financial import build_payout_admin_conv
 from handlers.admin.user_mgmt import build_user_admin_conv
 from handlers.admin.platform_settings import build_settings_conv
 from handlers.admin.broadcast import build_bcast_conv
+from handlers.admin.ad_post import build_adpost_conv
 from handlers.admin.platform_settings import toggle_setting
 from handlers.admin.pricing_engine import build_pricing_conv
 from handlers.admin.dashboard import admin_panel
@@ -85,6 +86,7 @@ def build_app_obj():
         app.add_handler(h)
     app.add_handler(build_settings_conv())
     app.add_handler(build_bcast_conv())
+    app.add_handler(build_adpost_conv())
     app.add_handler(build_pricing_conv())
     from telegram.ext import CallbackQueryHandler as _CQH
     app.add_handler(_CQH(toggle_setting, pattern=r"^admin:tog:[a-z_]+$"))
