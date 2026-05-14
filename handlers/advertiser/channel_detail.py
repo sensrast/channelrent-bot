@@ -93,7 +93,6 @@ def build_report_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(report_start, pattern=r"^adv:report:\d+$")],
         states={REPORT_REASON: [MessageHandler(filters.TEXT & ~filters.COMMAND, report_finish)]},
-        sha": "311c8dd0658759f372c9be9a2065c327fdb1a203",
         fallbacks=[CallbackQueryHandler(lambda u,c: ConversationHandler.END, pattern=r"^adv:ch:\d+$")],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
