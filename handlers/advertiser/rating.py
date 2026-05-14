@@ -35,6 +35,16 @@ async def submit_rating(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             pass
         return
+    already_rated_channel = await db.fetchval(
+        "SELECT review_id FROM reviews WHERE channel_id=$1 AND advertiser_id=$2 LIMIT 1",
+        b["channel_id"], b["advertiser_id"])
+    if already_rated_channel:
+        await q.answer("You have already rated this channel", show_alert=True)
+        try:
+            await q.edit_message_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+        return
     try:
         await db.execute(
             "INSERT INTO reviews (booking_id, channel_id, advertiser_id, rating) VALUES ($1,$2,$3,$4)",
