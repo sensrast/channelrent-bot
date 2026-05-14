@@ -49,7 +49,7 @@ async def channel_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [("🚩 Report Channel", f"adv:report:{ch_id}", "cd")],
     ]
     if link:
-        label = "🔗 Visit Channel (Require Approval)" if is_private else "🔗 Visit Channel"
+        label = "🔗 Visit Channel"
         rows.insert(0, [(label, link, "url")])
     rows.append([("🔙 Back", "adv:browse", "cd")])
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb_url(rows))
