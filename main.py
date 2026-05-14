@@ -18,7 +18,7 @@ from handlers.advertiser.wallet import build_topup_conv
 from handlers.advertiser.booking_flow import build_booking_conv
 from handlers.advertiser.channel_detail import build_report_conv
 from handlers.owner.channel_setup import build_setup_conv
-from handlers.owner.booking_mgmt import build_reject_conv, approve_booking
+from handlers.owner.booking_mgmt import build_reject_conv, approve_booking, preview_booking
 from handlers.owner.earnings import build_payout_conv
 from handlers.admin.financial import build_payout_admin_conv
 from handlers.admin.user_mgmt import build_user_admin_conv
@@ -85,6 +85,8 @@ def build_app_obj():
     app.add_handler(build_pricing_conv())
     from telegram.ext import CallbackQueryHandler as _CQH
     app.add_handler(_CQH(toggle_setting, pattern=r"^admin:tog:[a-z_]+$"))
+    app.add_handler(_CQH(approve_booking, pattern=r"^owner:apv:\d+$"))
+    app.add_handler(_CQH(preview_booking, pattern=r"^owner:prev:\d+$"))
 
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("admin", admin_panel))
