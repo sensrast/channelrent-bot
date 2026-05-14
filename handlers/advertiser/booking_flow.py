@@ -81,7 +81,7 @@ async def _validate_duration(target, context, hours):
         return CUSTOM_DURATION
     total = hours * b["price"]
     bal = await db.fetchval("SELECT credits_balance FROM users WHERE user_id=$1", target.from_user.id)
-    if bal < total:
+    if bal < total and target.from_user.id not in config.SUPERADMIN_IDS:
         txt = (f"❌ <b>Insufficient Credits</b>\n\nRequired: {total} cr\nBalance: {bal} cr\nShortfall: {total-bal} cr")
         rows = [[("💰 Top Up","adv:topup")], back("adv:browse")]
         if hasattr(target,"edit_message_text"):
@@ -209,8 +209,9 @@ async def confirm_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     inline_buttons_json=buttons_json, duration_hours=b["hours"],
                     price_per_hour_credits=b["price"], total_credits_charged=total,
                     status=status, approval_required=not auto)
-                await adjust_credits(conn, user_id, -total, "booking_charge",
-                    description=f"Booking {ref}", booking_id=booking_id)
+                if user_id not in config.SUPERADMIN_IDS:
+                    await adjust_credits(conn, user_id, -total, "booking_charge",
+                        description=f"Booking {ref}", booking_id=booking_id)
                 await conn.execute("UPDATE users SET total_bookings_made=total_bookings_made+1, is_advertiser=TRUE WHERE user_id=$1", user_id)
     except ValueError as e:
         await q.edit_message_text(f"❌ {e}", reply_markup=kb([back("home")]))
@@ -233,7 +234,8 @@ async def confirm_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             log.exception("post failed: %s", e)
             async with db.acquire() as conn:
                 async with conn.transaction():
-                    await adjust_credits(conn, user_id, total, "booking_cancelled", description=f"Auto-refund: post failed for {ref}", booking_id=booking_id)
+                    if user_id not in config.SUPERADMIN_IDS:
+                        await adjust_credits(conn, user_id, total, "booking_cancelled", description=f"Auto-refund: post failed for {ref}", booking_id=booking_id)
                     await update_booking(booking_id, status="cancelled", cancelled_by="system", cancellation_reason=str(e)[:200], cancelled_at_=None)
             await q.edit_message_text("❌ Could not post the ad. Credits refunded.", reply_markup=kb([back("home")]))
     else:
