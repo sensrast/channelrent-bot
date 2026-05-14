@@ -88,7 +88,12 @@ def start(bot):
     scheduler.start()
     log.info("Scheduler started")
 
-    log.info("Existence-detection loop disabled (admin DM spam + premature settlement fix)")
+    try:
+        loop = asyncio.get_event_loop()
+        _existence_task = loop.create_task(_existence_loop(bot))
+        log.info("Existence-detection loop enabled (interval=%ss) - instant owner-deletion notifications", EXISTENCE_LOOP_INTERVAL_SECONDS)
+    except Exception as e:
+        log.exception("Failed to start existence_loop: %s", e)
 
     return scheduler
 
