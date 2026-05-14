@@ -18,6 +18,7 @@ from handlers.advertiser.wallet import build_topup_conv
 from handlers.advertiser.booking_flow import build_booking_conv
 from handlers.advertiser.channel_detail import build_report_conv
 from handlers.owner.channel_setup import build_setup_conv
+from handlers.owner.channel_edit import build_channel_edit_conv
 from handlers.owner.booking_mgmt import build_reject_conv, approve_booking, preview_booking
 from handlers.owner.earnings import build_payout_conv
 from handlers.admin.financial import build_payout_admin_conv
@@ -73,6 +74,7 @@ def build_app_obj():
     app = Application.builder().token(config.BOT_TOKEN).post_init(_post_init).post_shutdown(_post_shutdown).build()
 
     app.add_handler(build_setup_conv())
+    app.add_handler(build_channel_edit_conv())
     app.add_handler(build_booking_conv())
     app.add_handler(build_report_conv())
     app.add_handler(build_topup_conv())
