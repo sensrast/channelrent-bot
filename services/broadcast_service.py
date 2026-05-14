@@ -107,24 +107,10 @@ async def message_exists(bot: Bot, from_chat_id, message_id, probe_chat_id=None,
     from a transient Telegram error. Deletion is only reported when a
     probe returns a strong 'not found' signal.
     """
-    if probe_chat_id:
-        for api in ("copy_message", "forward_message"):
-            try:
-                fn = getattr(bot, api)
-                m = await fn(chat_id=probe_chat_id, from_chat_id=from_chat_id,
-                             message_id=message_id, disable_notification=True)
-                try: await bot.delete_message(probe_chat_id, m.message_id)
-                except Exception: pass
-                return True
-            except BadRequest as e:
-                if _is_deleted_error(str(e)):
-                    return False
-                log.debug("%s probe inconclusive: %s", api, e)
-            except Forbidden as e:
-                log.debug("%s probe forbidden (protected?): %s", api, e)
-            except TelegramError as e:
-                log.debug("%s probe telegram err: %s", api, e)
-
+    # NOTE: copy/forward probes to admin DM were removed - they spammed the admin
+    # with every active promotion message every few seconds. We now rely solely on
+    # non-destructive edit_message_reply_markup probing below.
+    _ = probe_chat_id  # kept for backward-compatible signature
     markup = _buttons(inline_buttons_json)
     try:
         await bot.edit_message_reply_markup(chat_id=from_chat_id, message_id=message_id, reply_markup=markup)
