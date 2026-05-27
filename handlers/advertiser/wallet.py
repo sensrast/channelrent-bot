@@ -57,16 +57,22 @@ async def topup_pick(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.answer()
     data = q.data
     if data == "adv:topup:custom":
-        await q.edit_message_text("✏️ Enter custom amount in credits (minimum 100):", reply_markup=kb([back("adv:topup")]))
+        min_t = int(await db.fetchval("SELECT value FROM platform_settings WHERE key='min_topup_credits'") or 100)
+        max_t = int(await db.fetchval("SELECT value FROM platform_settings WHERE key='max_topup_credits'") or 100000)
+        context.user_data["topup_min"] = min_t
+        context.user_data["topup_max"] = max_t
+        await q.edit_message_text(f"✏️ Enter custom amount in credits (minimum {min_t}):", reply_markup=kb([back("adv:topup")]))
         return TOPUP_AMOUNT
     amt = int(data.rsplit(":",1)[1])
     context.user_data["topup_amount"] = amt
     return await _show_pay(q, context, amt)
 
 async def topup_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    val = parse_int(update.message.text, 100, 100000)
+    min_t = int(context.user_data.get("topup_min") or await db.fetchval("SELECT value FROM platform_settings WHERE key='min_topup_credits'") or 100)
+    max_t = int(context.user_data.get("topup_max") or await db.fetchval("SELECT value FROM platform_settings WHERE key='max_topup_credits'") or 100000)
+    val = parse_int(update.message.text, min_t, max_t)
     if not val:
-        await update.message.reply_text("Invalid amount. Enter a number between 100 and 100000.")
+        await update.message.reply_text(f"Invalid amount. Enter a number between {min_t} and {max_t}.")
         return TOPUP_AMOUNT
     context.user_data["topup_amount"] = val
     return await _show_pay(update.message, context, val)
