@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
 from utils.decorators import superadmin_only
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, back
 from database.pool import db
 
@@ -209,7 +210,7 @@ def build_settings_conv():
             MessageHandler(filters.TEXT & ~filters.COMMAND, set_finish),
             CallbackQueryHandler(set_cancel, pattern=r"^(admin:settings(:price|:forcesub|:joinreq)?|admin:panel|home)$"),
         ]},
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel), nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
