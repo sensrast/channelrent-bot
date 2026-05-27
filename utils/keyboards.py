@@ -26,7 +26,7 @@ def main_menu(has_channels: bool, is_admin: bool):
             [("🔍 Browse Channels","adv:browse"),("📋 My Bookings","adv:bookings")],
             [("💰 My Wallet","adv:wallet"),("➕ Top Up","adv:topup")],
             [("🔗 Referral","common:ref"),("❓ Help","common:help")],
-            [("🎫 Support","common:support")],
+            [("🎫 Support","common:support"),("🛎 Auto Accept","owner:autoaccept")],
         ]
     else:
         rows = [
@@ -34,7 +34,7 @@ def main_menu(has_channels: bool, is_admin: bool):
             [("💰 My Wallet","adv:wallet"),("➕ Top Up","adv:topup")],
             [("➕ List My Channel","owner:add")],
             [("🔗 Referral","common:ref"),("❓ How It Works","common:help")],
-            [("🎫 Support","common:support")],
+            [("🎫 Support","common:support"),("🛎 Auto Accept","owner:autoaccept")],
         ]
     if is_admin:
         rows.append([("👑 Admin Panel","admin:panel")])
