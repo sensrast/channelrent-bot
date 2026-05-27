@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
 from utils.decorators import superadmin_only
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, back
 from database.queries.credits import list_pending_topups, get_transaction, mark_payment_verified, adjust_credits
 from database.queries.payouts import list_pending, get_payout
@@ -183,7 +184,7 @@ def build_payout_admin_conv():
             PAYOUT_REF:[MessageHandler(filters.TEXT & ~filters.COMMAND, payout_ok_finish)],
             REJECT_REASON:[MessageHandler(filters.TEXT & ~filters.COMMAND, payout_no_finish)],
         },
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel), nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
