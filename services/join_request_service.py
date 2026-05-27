@@ -11,29 +11,37 @@ DEFAULT_WELCOME = "👋 Welcome! Thanks for joining. We're glad to have you here
 def _is_truthy(v):
     return str(v).strip().lower() in ("1", "true", "yes", "on", "t", "y")
 
-async def _enabled() -> bool:
+async def _global_enabled():
     try:
         v = await db.fetchval("SELECT value FROM platform_settings WHERE key='join_request_auto_accept'")
         return _is_truthy(v)
     except Exception as e:
-        log.warning("join_request enabled check failed: %s", e)
+        log.warning("join_request global enabled check failed: %s", e)
         return False
 
-async def _welcome_text() -> str:
+async def _channel_enabled(chat_id):
+    try:
+        v = await db.fetchval("SELECT auto_accept_requests FROM channels WHERE telegram_chat_id=$1", chat_id)
+        return bool(v)
+    except Exception as e:
+        log.warning("join_request channel enabled check failed chat=%s: %s", chat_id, e)
+        return False
+
+async def _welcome_text():
     try:
         v = await db.fetchval("SELECT value FROM platform_settings WHERE key='welcome_dm_message'")
         return (v or DEFAULT_WELCOME).strip() or DEFAULT_WELCOME
     except Exception:
         return DEFAULT_WELCOME
 
-async def handle_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_join_request(update, context):
     req = update.chat_join_request
     if not req:
         return
-    if not await _enabled():
-        return
     chat = req.chat
     user = req.from_user
+    if not (await _global_enabled() or await _channel_enabled(chat.id)):
+        return
     try:
         await context.bot.approve_chat_join_request(chat_id=chat.id, user_id=user.id)
         log.info("Approved join request: chat=%s user=%s", chat.id, user.id)
