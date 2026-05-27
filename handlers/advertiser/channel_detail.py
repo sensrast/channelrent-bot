@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, kb_url, back
 from utils.channel_links import get_channel_link
 from utils.formatters import fmt_credits, activity_emoji
@@ -93,7 +94,7 @@ def build_report_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(report_start, pattern=r"^adv:report:\d+$")],
         states={REPORT_REASON: [MessageHandler(filters.TEXT & ~filters.COMMAND, report_finish)]},
-        fallbacks=[CallbackQueryHandler(lambda u,c: ConversationHandler.END, pattern=r"^adv:ch:\d+$")],
+        fallbacks=[nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
