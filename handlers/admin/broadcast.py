@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import asyncio, config
 from utils.decorators import superadmin_only
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, back
 from database.queries.users import all_user_ids
 from services.notification_service import notify
@@ -36,7 +37,7 @@ def build_bcast_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(bcast_start, pattern=r"^admin:bcast$")],
         states={BCAST:[MessageHandler(filters.TEXT & ~filters.COMMAND, bcast_send)]},
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel), nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
