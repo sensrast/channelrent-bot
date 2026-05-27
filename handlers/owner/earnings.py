@@ -5,6 +5,7 @@ async def _univ_cancel(u,c):
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, back
 from utils.validators import is_upi, parse_int
 from database.pool import db
@@ -88,7 +89,7 @@ def build_payout_conv():
             PAYOUT_NAME:[MessageHandler(filters.TEXT & ~filters.COMMAND, payout_name)],
             PAYOUT_CONFIRM:[CallbackQueryHandler(payout_confirm, pattern=r"^owner:payout:(go|cancel)$")],
         },
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel), nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
