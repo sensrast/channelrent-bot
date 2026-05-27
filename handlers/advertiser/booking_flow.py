@@ -7,6 +7,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, kb_url, back
 from utils.channel_links import get_channel_link
 from utils.formatters import fmt_credits
@@ -262,7 +263,7 @@ def build_booking_conv():
             GET_BUTTONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_buttons)],
             CONFIRM: [CallbackQueryHandler(confirm_booking, pattern=r"^adv:bf:(confirm|cancel)$")],
         },
-        fallbacks=[CallbackQueryHandler(lambda u,c: ConversationHandler.END, pattern=r"^home$")],
+        fallbacks=[nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
