@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, kb_url, back
 from database.queries.bookings import get_booking, update_booking
 from database.queries.credits import adjust_credits
@@ -207,7 +208,7 @@ def build_reject_conv():
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(reject_start, pattern=r"^owner:rej:\d+$")],
         states={REJECT_REASON: [MessageHandler(filters.TEXT & ~filters.COMMAND, reject_finish)]},
-        fallbacks=[_CmdHandler("cancel", _univ_cancel)],
+        fallbacks=[_CmdHandler("cancel", _univ_cancel), nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
