@@ -16,7 +16,7 @@ from handlers.advertiser.channel_detail import channel_detail, report_start
 from handlers.advertiser.my_bookings import my_bookings, view_booking, delete_early_confirm, delete_early_go, cancel_pending
 from handlers.advertiser.rating import submit_rating
 from handlers.owner.dashboard import (my_channels, channel_manage, channel_pause, channel_refresh, channel_remove,
-                                      earnings_panel, incoming_bookings, view_owner_booking)
+                                      earnings_panel, incoming_bookings, view_owner_booking, channel_toggle_joinreq, autoaccept_panel, autoaccept_toggle)
 from handlers.owner.channel_edit import (channel_edit_menu, channel_edit_category, channel_set_category, channel_toggle_approval)
 from handlers.admin.dashboard import admin_panel, analytics_panel
 from handlers.admin.financial import (finance_panel, topup_list, topup_view, topup_approve, topup_reject,
@@ -26,7 +26,6 @@ from handlers.admin.channel_mgmt import channels_panel, channel_view as admin_ch
 from handlers.admin.booking_mgmt import bookings_panel
 from handlers.admin.platform_settings import settings_panel, pricing_settings_panel, forcesub_panel, joinreq_panel
 from handlers.admin.pricing_engine import pricing_panel, pricing_recalc
-from handlers.admin.autoaccept import autoaccept_panel, autoaccept_toggle
 
 log = logging.getLogger(__name__)
 
@@ -74,6 +73,7 @@ ROUTES = {
     "adv:f:cat": category_picker,
     "adv:bookings": my_bookings,
     "owner:channels": my_channels,
+    "owner:autoaccept": autoaccept_panel,
     "owner:earnings": earnings_panel,
     "owner:bookings": incoming_bookings,
     "admin:panel": admin_panel,
@@ -91,7 +91,6 @@ ROUTES = {
     "common:fsub:verify": force_sub_verify,
     "admin:pricing": pricing_panel,
     "admin:pricing:recalc": pricing_recalc,
-    "admin:aar": autoaccept_panel,
 }
 
 PREFIX_ROUTES = [
@@ -107,6 +106,8 @@ PREFIX_ROUTES = [
     ("owner:ch:setcat:", channel_set_category),
     ("owner:ch:editcat:", channel_edit_category),
     ("owner:ch:toggleapv:", channel_toggle_approval),
+    ("owner:ch:togglejr:", channel_toggle_joinreq),
+    ("owner:aa:tog:", autoaccept_toggle),
     ("owner:ch:edit:", channel_edit_menu),
     ("owner:ch:refresh:", channel_refresh),
     ("owner:ch:pause:", channel_pause),
@@ -121,8 +122,6 @@ PREFIX_ROUTES = [
     ("admin:user:", user_view),
     ("admin:ch:sus:", channel_suspend),
     ("admin:ch:", admin_channel_view),
-    ("admin:aar:p:", autoaccept_panel),
-    ("admin:aar:t:", autoaccept_toggle),
 ]
 
 async def callback_router(update, context):
