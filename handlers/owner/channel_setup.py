@@ -6,6 +6,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 import config
+from utils.conv_fallbacks import nav_fallback
 from utils.keyboards import kb, back
 from utils.validators import normalize_channel_link, parse_int
 from utils.formatters import activity_emoji
@@ -249,7 +250,7 @@ def build_setup_conv():
             CUSTOM_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, custom_price)],
             CONFIRM: [CallbackQueryHandler(confirm_setup, pattern=r"^owner:setup:(confirm|cancel)$")],
         },
-        fallbacks=[CallbackQueryHandler(lambda u,c: ConversationHandler.END, pattern=r"^home$")],
+        fallbacks=[nav_fallback()],
         conversation_timeout=config.CONVO_TIMEOUT_SECONDS,
         per_user=True, per_chat=True, per_message=False,
         allow_reentry=True,
