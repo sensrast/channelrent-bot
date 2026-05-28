@@ -26,6 +26,7 @@ from handlers.admin.channel_mgmt import channels_panel, channel_view as admin_ch
 from handlers.admin.booking_mgmt import bookings_panel
 from handlers.admin.platform_settings import settings_panel, pricing_settings_panel, forcesub_panel, joinreq_panel
 from handlers.admin.pricing_engine import pricing_panel, pricing_recalc
+from handlers.admin.autoaccept import autoaccept_panel as admin_aar_panel, autoaccept_toggle as admin_aar_toggle
 
 log = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ ROUTES = {
     "common:fsub:verify": force_sub_verify,
     "admin:pricing": pricing_panel,
     "admin:pricing:recalc": pricing_recalc,
+    "admin:aar": admin_aar_panel,
 }
 
 PREFIX_ROUTES = [
@@ -108,6 +110,7 @@ PREFIX_ROUTES = [
     ("owner:ch:toggleapv:", channel_toggle_approval),
     ("owner:ch:togglejr:", channel_toggle_joinreq),
     ("owner:aa:tog:", autoaccept_toggle),
+    ("owner:autoaccept:p:", autoaccept_panel),
     ("owner:ch:edit:", channel_edit_menu),
     ("owner:ch:refresh:", channel_refresh),
     ("owner:ch:pause:", channel_pause),
@@ -122,6 +125,8 @@ PREFIX_ROUTES = [
     ("admin:user:", user_view),
     ("admin:ch:sus:", channel_suspend),
     ("admin:ch:", admin_channel_view),
+    ("admin:aar:p:", admin_aar_panel),
+    ("admin:aar:t:", admin_aar_toggle),
 ]
 
 async def callback_router(update, context):
