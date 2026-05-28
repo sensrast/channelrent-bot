@@ -6,7 +6,19 @@ from database.pool import db
 
 log = logging.getLogger(__name__)
 
-DEFAULT_WELCOME = "👋 Welcome! Thanks for joining. We're glad to have you here."
+DEFAULT_WELCOME = "\U0001f44b Welcome! Thanks for joining. We're glad to have you here."
+
+def _sanitize_surrogates(s):
+    if not isinstance(s, str) or not s:
+        return s or ""
+    try:
+        s.encode("utf-8"); return s
+    except UnicodeEncodeError:
+        pass
+    try:
+        return s.encode("utf-16", "surrogatepass").decode("utf-16")
+    except Exception:
+        return s.encode("utf-8", "replace").decode("utf-8", "replace")
 
 def _is_truthy(v):
     return str(v).strip().lower() in ("1", "true", "yes", "on", "t", "y")
@@ -30,7 +42,7 @@ async def _channel_enabled(chat_id):
 async def _welcome_text():
     try:
         v = await db.fetchval("SELECT value FROM platform_settings WHERE key='welcome_dm_message'")
-        return (v or DEFAULT_WELCOME).strip() or DEFAULT_WELCOME
+        return _sanitize_surrogates((v or DEFAULT_WELCOME)).strip() or DEFAULT_WELCOME
     except Exception:
         return DEFAULT_WELCOME
 

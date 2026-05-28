@@ -17,6 +17,19 @@ def _is_truthy(v):
 
 EDIT = 0
 
+def _sanitize_surrogates(s):
+    if not isinstance(s, str) or not s:
+        return s or ""
+    try:
+        s.encode("utf-8")
+        return s
+    except UnicodeEncodeError:
+        pass
+    try:
+        return s.encode("utf-16", "surrogatepass").decode("utf-16")
+    except Exception:
+        return s.encode("utf-8", "replace").decode("utf-8", "replace")
+
 GENERAL_KEYS = [
     "platform_commission_percent","min_topup_credits","max_topup_credits","min_payout_credits",
     "credits_per_rupee","min_booking_hours","max_booking_hours","max_channels_per_owner",
@@ -39,7 +52,7 @@ PRICE_KEYS = [
 KEYS = GENERAL_KEYS + PRICE_KEYS + FORCE_SUB_KEYS + JOIN_REQ_KEYS
 
 
-async def _upsert_setting(key: str, value: str, updated_by: int):
+async def _upsert_setting(key, value, updated_by):
     await db.execute(
         """INSERT INTO platform_settings (key, value, updated_at, updated_by)
            VALUES ($1, $2, NOW(), $3)
@@ -55,20 +68,20 @@ async def settings_panel(update, context):
     await q.answer()
     rows = await db.fetch("SELECT key, value FROM platform_settings WHERE key=ANY($1::text[])", GENERAL_KEYS)
     vals = {r["key"]: r["value"] for r in rows}
-    txt = "\ud83d\udd27 <b>Platform Settings</b>\n"
+    txt = "\U0001f527 <b>Platform Settings</b>\n"
     kb_rows = []
     for k in GENERAL_KEYS:
         cur = vals.get(k, "?")
         if k in BOOL_KEYS:
             on = _is_truthy(cur)
-            label = f"{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'} \u2014 {k}"
+            label = f"{'\U0001f7e2 ON' if on else '\U0001f534 OFF'} \u2014 {k}"
             txt += f"\n\u2022 <b>{k}</b>: <code>{'ON' if on else 'OFF'}</code>"
             kb_rows.append([(label, f"admin:tog:{k}")])
         else:
             txt += f"\n\u2022 <b>{k}</b>: <code>{cur}</code>"
             kb_rows.append([(f"\u270f\ufe0f {k}", f"admin:set:{k}")])
-    kb_rows.append([("\ud83d\udcb0 Adjust Pricing", "admin:settings:price")])
-    kb_rows.append([("\ud83d\udd12 Force Sub", "admin:settings:forcesub")])
+    kb_rows.append([("\U0001f4b0 Adjust Pricing", "admin:settings:price")])
+    kb_rows.append([("\U0001f512 Force Sub", "admin:settings:forcesub")])
     kb_rows.append(back("admin:panel"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
 
@@ -78,13 +91,13 @@ async def pricing_settings_panel(update, context):
     await q.answer()
     rows = await db.fetch("SELECT key, value FROM platform_settings WHERE key=ANY($1::text[])", PRICE_KEYS)
     vals = {r["key"]: r["value"] for r in rows}
-    txt = "\ud83d\udcb0 <b>Pricing Adjustments</b>\n\nTap any value to change it.\n"
+    txt = "\U0001f4b0 <b>Pricing Adjustments</b>\n\nTap any value to change it.\n"
     kb_rows = []
     for k in PRICE_KEYS:
         cur = vals.get(k, "?")
         txt += f"\n\u2022 <b>{k}</b>: <code>{cur}</code>"
         kb_rows.append([(f"\u270f\ufe0f Adjust {k}", f"admin:set:{k}")])
-    kb_rows.append([("\ud83d\udd04 Recalculate All Channels", "admin:pricing:recalc")])
+    kb_rows.append([("\U0001f504 Recalculate All Channels", "admin:pricing:recalc")])
     kb_rows.append(back("admin:settings"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
 
@@ -95,13 +108,13 @@ async def forcesub_panel(update, context):
     en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_enabled'") or "false")
     ch = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_channel'") or "")
     on = _is_truthy(en)
-    txt = (f"\ud83d\udd12 <b>Force Subscribe</b>\n\n"
-           f"Status: <b>{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'}</b>\n"
+    txt = (f"\U0001f512 <b>Force Subscribe</b>\n\n"
+           f"Status: <b>{'\U0001f7e2 ON' if on else '\U0001f534 OFF'}</b>\n"
            f"Channel: <code>{ch or '(not set)'}</code>\n\n"
            f"When ON, users who arrive via a referral link must join this channel before "
            f"the referral reward is credited to both parties.")
     rows = [
-        [(f"{'\ud83d\udd34 Turn OFF' if on else '\ud83d\udfe2 Turn ON'}", "admin:tog:force_sub_enabled")],
+        [(f"{'\U0001f534 Turn OFF' if on else '\U0001f7e2 Turn ON'}", "admin:tog:force_sub_enabled")],
         [("\u270f\ufe0f Set Channel (@user or -100\u2026id)", "admin:set:force_sub_channel")],
         back("admin:panel"),
     ]
@@ -114,17 +127,18 @@ async def joinreq_panel(update, context):
     await q.answer()
     en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='join_request_auto_accept'") or "false")
     msg = (await db.fetchval("SELECT value FROM platform_settings WHERE key='welcome_dm_message'") or "")
+    msg = _sanitize_surrogates(msg)
     on = _is_truthy(en)
     preview = msg if len(msg) <= 300 else (msg[:300] + "\u2026")
     preview_html = preview.replace("<","&lt;").replace(">","&gt;")
-    txt = (f"\ud83d\udce8 <b>Join Requests</b>\n\n"
-           f"Status: <b>{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'}</b>\n\n"
+    txt = (f"\U0001f4e8 <b>Join Requests</b>\n\n"
+           f"Status: <b>{'\U0001f7e2 ON' if on else '\U0001f534 OFF'}</b>\n\n"
            f"When ON, the bot auto-accepts join requests in channels where it's an admin "
            f"with <i>Add Users / Invite Users</i> permission, then sends a welcome DM.\n\n"
            f"Placeholders: <code>{{user}}</code>, <code>{{channel}}</code>\n\n"
            f"<b>Current Welcome DM:</b>\n<blockquote>{preview_html or '(not set)'}</blockquote>")
     rows = [
-        [(f"{'\ud83d\udd34 Turn OFF' if on else '\ud83d\udfe2 Turn ON'}", "admin:tog:join_request_auto_accept")],
+        [(f"{'\U0001f534 Turn OFF' if on else '\U0001f7e2 Turn ON'}", "admin:tog:join_request_auto_accept")],
         [("\u270f\ufe0f Edit Welcome DM", "admin:set:welcome_dm_message")],
         back("admin:panel"),
     ]
@@ -172,7 +186,7 @@ async def set_finish(update, context):
     if update.effective_user.id not in config.SUPERADMIN_IDS: return ConversationHandler.END
     key = context.user_data.pop("set_key", None)
     if not key: return ConversationHandler.END
-    val = update.message.text.strip()
+    val = _sanitize_surrogates(update.message.text.strip())
     if key == "force_sub_channel":
         from handlers.start import normalize_force_sub_channel
         val = normalize_force_sub_channel(val)
