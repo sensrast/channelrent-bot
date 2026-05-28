@@ -27,3 +27,252 @@ async def my_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb_rows.append([("✗ Add Channel","owner:add")])
     kb_rows.append(back("home"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+async def channel_manage(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    cid = int(q.data.split(":")[2])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id:
+        await q.edit_message_text("Not found.", reply_markup=kb([back("owner:channels")]))
+        return
+    apv_label = "Auto" if c["auto_approve"] else "Manual"
+    cat_name = f"{c.get('category_emoji') or ''} {c.get('category_name') or 'Not set'}".strip()
+    txt = (f"⚖️ <b>{c['title']}</b>\n\n"
+           f"👥 Subscribers: {fmt_credits(c['subscriber_count'])}\n"
+           f"👁️ Avg Views: {fmt_credits(c['avg_views_24h'])}\n"
+           f"{activity_emoji(c['activity_tier'])} Activity: {c['activity_tier'].upper()} ({c['activity_score']}/100)\n"
+           f"📂 Category: {cat_name}\n"
+           f"💰 Rate: <b>{c['final_price_credits']} cr/hr</b>\n"
+           f"🔐 Approval: <b>{apv_label}</b>\n"
+           f"📋 Total bookings: {c['total_bookings']}\n"
+           f"💰 Revenue: {fmt_credits(c['total_revenue_credits'])} cr\n"
+           f"⬐ {c['rating']:.1f} ({c['rating_count']})\n\n"
+           f"✅ Allowed: {c['allowed_content'] or '—'}\n"
+           f"❌ Forbidden: {c['forbidden_content'] or '—'}")
+    pause_label = "▶️ Resume Listing" if c["is_paused"] else "⏸️ Pause Listing"
+    rows = [
+        [("📂 Change Category", f"owner:ch:editcat:{cid}")],
+        [("💰 Change Price", f"owner:ch:editprice:{cid}")],
+        [(f"🔐 Approval: {apv_label} (toggle)", f"owner:ch:toggleapv:{cid}")],
+        [("✅ Edit Allowed Content", f"owner:ch:editallowed:{cid}")],
+        [("❌ Edit Forbidden Content", f"owner:ch:editforbidden:{cid}")],
+        [("👁 Refresh Stats", f"owner:ch:refresh:{cid}")],
+        [(pause_label, f"owner:ch:pause:{cid}")],
+        [("🗑️ Remove Channel", f"owner:ch:rm:{cid}")],
+        back("owner:channels"),
+    ]
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+
+async def channel_pause(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer("Toggled")
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id:
+        return
+    await update_channel(cid, is_paused=not c["is_paused"])
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
+
+async def channel_refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer("Refreshing...")
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id: return
+    try:
+        from telegram.error import TelegramError
+        count = await context.bot.get_chat_member_count(c["telegram_chat_id"])
+        from services.pricing_engine import compute_activity, compute_price_per_hour
+        score, tier, eng = compute_activity(count, c["avg_views_24h"])
+        price = compute_price_per_hour(count, c["avg_views_24h"], tier)
+        await update_channel(cid, subscriber_count=count, activity_score=score, activity_tier=tier, engagement_rate=eng, final_price_credits=price, base_price_credits=price)
+    except Exception as e:
+        await q.answer(f"Failed: {e}", show_alert=True)
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
+
+async def channel_remove(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id: return
+    await update_channel(cid, is_listed=False, is_paused=True, is_active=False)
+    await q.edit_message_text(f"🗑️ {c['title']} delisted.", reply_markup=kb([back("owner:channels")]))
+
+async def earnings_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    user = await get_user(q.from_user.id)
+    try:
+        v = await db.fetchval("SELECT value FROM platform_settings WHERE key='min_payout_credits'")
+        min_payout = int(float(v)) if v is not None else 500
+    except Exception:
+        min_payout = 500
+    txt = (f"📈 <b>My Earnings</b>\n\n"
+           f"💎 Pending: <b>{fmt_credits(user['earnings_pending'])} cr</b>\n"
+           f"✅ Paid out: {fmt_credits(user['earnings_paid'])} cr\n\n"
+           f"Minimum payout: {min_payout} cr\n")
+    rows = [[("💸 Request Payout","owner:payout")], back("home")]
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+
+async def incoming_bookings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    rows = await list_owner_bookings(q.from_user.id, status_in=["pending_approval","active"], limit=15)
+    if not rows:
+        await q.edit_message_text("📋 <b>Incoming Bookings</b>\n\nNo active or pending bookings.",
+            parse_mode="HTML", reply_markup=kb([back("home")]))
+        return
+    txt = "📋 <b>Incoming Bookings</b>\n"
+    kb_rows = []
+    for b in rows:
+        txt += f"\n• <code>{b['booking_ref']}</code> • {b['status']} • {b['channel_title']}"
+        kb_rows.append([(f"📋 {b['booking_ref']}", f"owner:bk:{b['booking_id']}")])
+    kb_rows.append(back("home"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+async def view_owner_booking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    bid = int(q.data.split(":")[2])
+    b = await get_booking(bid)
+    if not b or b["owner_id"] != q.from_user.id:
+        await q.edit_message_text("Not found.", reply_markup=kb([back("owner:bookings")]))
+        return
+    from services.pricing_engine import commission_split
+    _, owner_earn = commission_split(b["total_credits_charged"])
+    txt = (f"📋 <b>{b['booking_ref']}</b>\n\nChannel: {b['channel_title']}\nDuration: {b['duration_hours']}h\n"
+           f"Status: {b['status']}\nYou'll earn (max): {owner_earn} cr")
+    rows = []
+    if b["status"] == "pending_approval":
+        rows.append([("👁️ Preview Ad", f"owner:prev:{bid}")])
+        rows.append([("✅ Approve", f"owner:apv:{bid}"), ("❌ Reject", f"owner:rej:{bid}")])
+    rows.append(back("owner:bookings"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
+
+
+# --- Join request / auto-accept (owner side) ---
+OWNER_AAR_PAGE_SIZE = 10
+
+async def channel_toggle_joinreq(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    cid = int(q.data.split(":")[3])
+    c = await get_channel(cid)
+    if not c or c["owner_id"] != q.from_user.id:
+        try: await q.answer("Not found", show_alert=True)
+        except Exception: pass
+        return
+    try:
+        cur = bool(c["auto_accept_requests"])
+    except (KeyError, TypeError):
+        cur = False
+    new_val = not cur
+    if new_val:
+        try:
+            me = await context.bot.get_me()
+            member = await context.bot.get_chat_member(chat_id=c["telegram_chat_id"], user_id=me.id)
+            status = getattr(member, "status", "")
+            if status not in ("administrator", "creator"):
+                await q.answer("⚠️ Bot is not admin in this channel.", show_alert=True)
+                return
+        except Exception as e:
+            await q.answer(f"⚠️ Cannot verify admin: {e}", show_alert=True)
+            return
+    await update_channel(cid, auto_accept_requests=new_val)
+    try:
+        await q.answer("✅ Auto-accept ON" if new_val else "⬜ Auto-accept OFF")
+    except Exception:
+        pass
+    q.data = f"owner:ch:{cid}"
+    await channel_manage(update, context)
+
+
+async def _owner_aar_render(q, page, context):
+    rows = await db.fetch(
+        "SELECT channel_id, telegram_chat_id, title, COALESCE(auto_accept_requests,FALSE) AS aar "
+        "FROM channels WHERE owner_id=$1 AND is_active=TRUE ORDER BY title ASC NULLS LAST",
+        q.from_user.id,
+    )
+    total = len(rows)
+    if total == 0:
+        await q.edit_message_text(
+            "🤖 <b>Auto Accept Join Requests</b>\n\nYou have no active channels.",
+            parse_mode="HTML",
+            reply_markup=kb([back("home")]),
+        )
+        return
+    pages = (total + OWNER_AAR_PAGE_SIZE - 1) // OWNER_AAR_PAGE_SIZE
+    page = max(0, min(page, pages - 1))
+    start = page * OWNER_AAR_PAGE_SIZE
+    chunk = rows[start:start + OWNER_AAR_PAGE_SIZE]
+    enabled = sum(1 for r in rows if r["aar"])
+    txt = (
+        "🤖 <b>Auto Accept Join Requests</b>\n\n"
+        "Toggle per-channel auto-accept for pending join requests.\n"
+        f"Enabled: <b>{enabled}</b> / {total}\n\n"
+        "Tap a channel to toggle ON/OFF."
+    )
+    kb_rows = []
+    for c in chunk:
+        mark = "✅" if c["aar"] else "⬜"
+        title = (c["title"] or f"chat {c['telegram_chat_id']}")[:40]
+        kb_rows.append([(f"{mark} {title}", f"owner:aa:tog:{c['channel_id']}:{page}")])
+    nav = []
+    if page > 0:
+        nav.append(("◀️ Prev", f"owner:autoaccept:p:{page-1}"))
+    nav.append((f"Page {page+1}/{pages}", "noop"))
+    if page < pages - 1:
+        nav.append(("Next ▶️", f"owner:autoaccept:p:{page+1}"))
+    kb_rows.append(nav)
+    kb_rows.append(back("home"))
+    await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
+
+
+async def autoaccept_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    page = 0
+    parts = (q.data or "").split(":")
+    if len(parts) >= 4 and parts[2] == "p":
+        try:
+            page = max(0, int(parts[3]))
+        except Exception:
+            page = 0
+    await _owner_aar_render(q, page, context)
+
+
+async def autoaccept_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    parts = (q.data or "").split(":")
+    try:
+        cid = int(parts[3])
+        page = int(parts[4]) if len(parts) > 4 else 0
+    except (ValueError, IndexError):
+        await q.answer("Bad data", show_alert=True)
+        return
+    row = await db.fetchrow(
+        "SELECT channel_id, owner_id, telegram_chat_id, title, COALESCE(auto_accept_requests,FALSE) AS aar "
+        "FROM channels WHERE channel_id=$1",
+        cid,
+    )
+    if not row or row["owner_id"] != q.from_user.id:
+        await q.answer("Not found", show_alert=True)
+        return
+    new_val = not row["aar"]
+    if new_val:
+        try:
+            me = await context.bot.get_me()
+            member = await context.bot.get_chat_member(chat_id=row["telegram_chat_id"], user_id=me.id)
+            status = getattr(member, "status", "")
+            if status not in ("administrator", "creator"):
+                await q.answer("⚠️ Bot is not admin in this channel.", show_alert=True)
+                return
+        except Exception as e:
+            await q.answer(f"⚠️ Cannot verify admin: {e}", show_alert=True)
+            return
+    await update_channel(cid, auto_accept_requests=new_val)
+    await q.answer(("✅ Enabled" if new_val else "⬜ Disabled") + f" for {row['title'] or cid}")
+    await _owner_aar_render(q, page, context)
