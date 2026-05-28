@@ -38,26 +38,37 @@ PRICE_KEYS = [
 
 KEYS = GENERAL_KEYS + PRICE_KEYS + FORCE_SUB_KEYS + JOIN_REQ_KEYS
 
+
+async def _upsert_setting(key: str, value: str, updated_by: int):
+    await db.execute(
+        """INSERT INTO platform_settings (key, value, updated_at, updated_by)
+           VALUES ($1, $2, NOW(), $3)
+           ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,
+                                           updated_at=NOW(),
+                                           updated_by=EXCLUDED.updated_by""",
+        key, str(value), updated_by,
+    )
+
 @superadmin_only
 async def settings_panel(update, context):
     q = update.callback_query
     await q.answer()
     rows = await db.fetch("SELECT key, value FROM platform_settings WHERE key=ANY($1::text[])", GENERAL_KEYS)
     vals = {r["key"]: r["value"] for r in rows}
-    txt = "🔧 <b>Platform Settings</b>\n"
+    txt = "\ud83d\udd27 <b>Platform Settings</b>\n"
     kb_rows = []
     for k in GENERAL_KEYS:
         cur = vals.get(k, "?")
         if k in BOOL_KEYS:
             on = _is_truthy(cur)
-            label = f"{'🟢 ON' if on else '🔴 OFF'} — {k}"
-            txt += f"\n• <b>{k}</b>: <code>{'ON' if on else 'OFF'}</code>"
+            label = f"{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'} \u2014 {k}"
+            txt += f"\n\u2022 <b>{k}</b>: <code>{'ON' if on else 'OFF'}</code>"
             kb_rows.append([(label, f"admin:tog:{k}")])
         else:
-            txt += f"\n• <b>{k}</b>: <code>{cur}</code>"
-            kb_rows.append([(f"✏️ {k}", f"admin:set:{k}")])
-    kb_rows.append([("💰 Adjust Pricing", "admin:settings:price")])
-    kb_rows.append([("🔒 Force Sub", "admin:settings:forcesub")])
+            txt += f"\n\u2022 <b>{k}</b>: <code>{cur}</code>"
+            kb_rows.append([(f"\u270f\ufe0f {k}", f"admin:set:{k}")])
+    kb_rows.append([("\ud83d\udcb0 Adjust Pricing", "admin:settings:price")])
+    kb_rows.append([("\ud83d\udd12 Force Sub", "admin:settings:forcesub")])
     kb_rows.append(back("admin:panel"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
 
@@ -67,13 +78,13 @@ async def pricing_settings_panel(update, context):
     await q.answer()
     rows = await db.fetch("SELECT key, value FROM platform_settings WHERE key=ANY($1::text[])", PRICE_KEYS)
     vals = {r["key"]: r["value"] for r in rows}
-    txt = "💰 <b>Pricing Adjustments</b>\n\nTap any value to change it.\n"
+    txt = "\ud83d\udcb0 <b>Pricing Adjustments</b>\n\nTap any value to change it.\n"
     kb_rows = []
     for k in PRICE_KEYS:
         cur = vals.get(k, "?")
-        txt += f"\n• <b>{k}</b>: <code>{cur}</code>"
-        kb_rows.append([(f"✏️ Adjust {k}", f"admin:set:{k}")])
-    kb_rows.append([("🔄 Recalculate All Channels", "admin:pricing:recalc")])
+        txt += f"\n\u2022 <b>{k}</b>: <code>{cur}</code>"
+        kb_rows.append([(f"\u270f\ufe0f Adjust {k}", f"admin:set:{k}")])
+    kb_rows.append([("\ud83d\udd04 Recalculate All Channels", "admin:pricing:recalc")])
     kb_rows.append(back("admin:settings"))
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(kb_rows))
 
@@ -84,14 +95,14 @@ async def forcesub_panel(update, context):
     en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_enabled'") or "false")
     ch = (await db.fetchval("SELECT value FROM platform_settings WHERE key='force_sub_channel'") or "")
     on = _is_truthy(en)
-    txt = (f"🔒 <b>Force Subscribe</b>\n\n"
-           f"Status: <b>{'🟢 ON' if on else '🔴 OFF'}</b>\n"
+    txt = (f"\ud83d\udd12 <b>Force Subscribe</b>\n\n"
+           f"Status: <b>{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'}</b>\n"
            f"Channel: <code>{ch or '(not set)'}</code>\n\n"
            f"When ON, users who arrive via a referral link must join this channel before "
            f"the referral reward is credited to both parties.")
     rows = [
-        [(f"{'🔴 Turn OFF' if on else '🟢 Turn ON'}", "admin:tog:force_sub_enabled")],
-        [("✏️ Set Channel (@user or -100…id)", "admin:set:force_sub_channel")],
+        [(f"{'\ud83d\udd34 Turn OFF' if on else '\ud83d\udfe2 Turn ON'}", "admin:tog:force_sub_enabled")],
+        [("\u270f\ufe0f Set Channel (@user or -100\u2026id)", "admin:set:force_sub_channel")],
         back("admin:panel"),
     ]
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
@@ -104,17 +115,17 @@ async def joinreq_panel(update, context):
     en = (await db.fetchval("SELECT value FROM platform_settings WHERE key='join_request_auto_accept'") or "false")
     msg = (await db.fetchval("SELECT value FROM platform_settings WHERE key='welcome_dm_message'") or "")
     on = _is_truthy(en)
-    preview = msg if len(msg) <= 300 else (msg[:300] + "…")
+    preview = msg if len(msg) <= 300 else (msg[:300] + "\u2026")
     preview_html = preview.replace("<","&lt;").replace(">","&gt;")
-    txt = (f"📨 <b>Join Requests</b>\n\n"
-           f"Status: <b>{'🟢 ON' if on else '🔴 OFF'}</b>\n\n"
+    txt = (f"\ud83d\udce8 <b>Join Requests</b>\n\n"
+           f"Status: <b>{'\ud83d\udfe2 ON' if on else '\ud83d\udd34 OFF'}</b>\n\n"
            f"When ON, the bot auto-accepts join requests in channels where it's an admin "
            f"with <i>Add Users / Invite Users</i> permission, then sends a welcome DM.\n\n"
            f"Placeholders: <code>{{user}}</code>, <code>{{channel}}</code>\n\n"
            f"<b>Current Welcome DM:</b>\n<blockquote>{preview_html or '(not set)'}</blockquote>")
     rows = [
-        [(f"{'🔴 Turn OFF' if on else '🟢 Turn ON'}", "admin:tog:join_request_auto_accept")],
-        [("✏️ Edit Welcome DM", "admin:set:welcome_dm_message")],
+        [(f"{'\ud83d\udd34 Turn OFF' if on else '\ud83d\udfe2 Turn ON'}", "admin:tog:join_request_auto_accept")],
+        [("\u270f\ufe0f Edit Welcome DM", "admin:set:welcome_dm_message")],
         back("admin:panel"),
     ]
     await q.edit_message_text(txt, parse_mode="HTML", reply_markup=kb(rows))
@@ -174,7 +185,7 @@ async def set_finish(update, context):
         back_to = "admin:settings:joinreq"
     else:
         back_to = "admin:settings"
-    await update.message.reply_text(f"✅ <b>{key}</b> = <code>{val}</code>", parse_mode="HTML",
+    await update.message.reply_text(f"\u2705 <b>{key}</b> = <code>{val}</code>", parse_mode="HTML",
         reply_markup=kb([back(back_to)]))
     return ConversationHandler.END
 
