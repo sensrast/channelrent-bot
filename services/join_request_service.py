@@ -52,7 +52,10 @@ async def handle_join_request(update, context):
         return
     chat = req.chat
     user = req.from_user
-    if not (await _global_enabled() or await _channel_enabled(chat.id)):
+    if not await _global_enabled():
+        return
+    if not await _channel_enabled(chat.id):
+        log.info("Join request ignored (channel auto-accept off): chat=%s user=%s", chat.id, user.id)
         return
     try:
         await context.bot.approve_chat_join_request(chat_id=chat.id, user_id=user.id)
